@@ -161,8 +161,8 @@ Full data exploration of the 276 complete cases:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/michaeludousoro/liver-cirrhosis-synthetic-data.git
+cd liver-cirrhosis-synthetic-data
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -286,7 +286,7 @@ identical numerical results.
 | A: Baseline (real only) | Gradient Boosting | 0.7831 | 0.7852 | 0.8776 |
 | B: Real + CTGAN | Gradient Boosting | 0.7470 | 0.7497 | 0.8552 |
 | C: Real + Consensus | Gradient Boosting | 0.7831 | 0.7848 | 0.8836 |
-| D: Real + SMOTE | Gradient Boosting | — | — | — |
+| D: Real + SMOTE | Gradient Boosting | 0.8072 | 0.8087 | 0.8661 |
 
 Full results with confidence intervals are in `output/results/`.
 

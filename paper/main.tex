@@ -1,0 +1,652 @@
+\documentclass[journal]{IEEEtran}
+
+% ---------------------------------------------------------------
+% Packages
+% ---------------------------------------------------------------
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{float}
+
+\graphicspath{{figures/}}
+
+% ---------------------------------------------------------------
+% Document
+% ---------------------------------------------------------------
+\begin{document}
+
+\title{Evaluating Predictive Utility of Synthetic Liver Cirrhosis Data in IoMT: A Comparative Study of GAN, CTGAN, and TVAE with Consensus-Based Quality Filtering}
+
+\author{Michael~Udousoro,
+        Francis~Anyaka,
+        and~Mfon~Ekpo,~\IEEEmembership{Senior~Members,~IEEE}
+\thanks{Manuscript received March 4, 2026.}}
+
+\maketitle
+
+% ---------------------------------------------------------------
+% Abstract
+% ---------------------------------------------------------------
+\begin{abstract}
+Synthetic data generation has become an increasingly important strategy for expanding rare clinical datasets in Internet of Medical Things (IoMT) applications, where patient privacy regulations and disease rarity jointly limit how much real data is available for training predictive models. A persistent limitation of the field, however, is that most studies evaluate synthetic data by measuring how closely generated samples resemble real ones statistically, without asking whether adding those samples to a training set actually improves predictions made on real patients. This paper investigates that question directly using the Mayo Clinic Primary Biliary Cirrhosis (PBC) dataset, in which only 276 complete patient records remain after removing cases with missing values from the original 418-patient trial cohort. Three generative architectures are trained from scratch without any third-party synthetic data library: a Vanilla GAN, a Conditional Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE). Before any augmented training takes place, generated records are passed through an IQR-based physiological plausibility filter that removes clinically implausible biomarker values, followed by a multi-method consensus voting procedure that retains only records independently corroborated by all three generative models. Distributional fidelity is assessed through tabular Fr\'{e}chet Inception Distance, Kolmogorov-Smirnov tests, and Jensen-Shannon divergence, while privacy risk is measured through nearest-neighbour distance analysis. Predictive utility is then evaluated by training Random Forest, Gradient Boosting, and Logistic Regression classifiers under four augmentation scenarios and testing on a strictly held-out set of 83 real patients, supplemented by 5-fold cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test. Among individual models, CTGAN achieves the best distributional fidelity with an FID score of 0.075 and a near-duplicate rate of 9.0 percent. No augmentation scenario produces a statistically significant improvement in held-out test accuracy, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation does, however, reduce Random Forest cross-validation AUC variance by a factor of four, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-model agreement region meaningfully stabilise classifiers across different training subsets. For IoMT clinical decision support, where consistent performance across patient subpopulations matters as much as peak accuracy, this stability finding has direct practical relevance.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Synthetic data generation, generative adversarial networks, variational autoencoder, liver cirrhosis, Internet of Medical Things, predictive utility, consensus voting, IQR filtering, patient privacy.
+\end{IEEEkeywords}
+
+% ---------------------------------------------------------------
+% Section I: Introduction
+% ---------------------------------------------------------------
+\section{Introduction}
+
+The Internet of Medical Things has transformed how clinical biomarkers are collected, enabling continuous monitoring of liver enzymes, bilirubin concentrations, and albumin levels from wearable and implanted devices that feed directly into clinical decision support systems \cite{guo2021, obeid2023}. As these systems grow more sophisticated, the demand for large, well-annotated patient datasets to train predictive models grows alongside them. The tension between that demand and the reality of clinical data availability is one of the defining challenges in medical machine learning. Privacy regulations, including GDPR and HIPAA, restrict what institutions can share, while rare conditions produce datasets that are inherently small. The Mayo Clinic Primary Biliary Cirrhosis trial is a concrete example: it enrolled 312 patients over more than a decade, and once records with incomplete measurements are removed, only 276 patients remain available for analysis \cite{kanwal2020}. Training robust classifiers on a dataset of that size is genuinely difficult.
+
+Synthetic data generation through generative artificial intelligence has emerged as the most principled response to this situation. Rather than sharing real patient records, researchers can generate synthetic patients that statistically resemble the real population while not corresponding to any individual, enabling collaborative research without breaching privacy \cite{goncalves2020, gonzales2023}. Generative Adversarial Networks and Variational Autoencoders have demonstrated genuine promise across medical imaging, physiological time series, and tabular clinical records \cite{yan2022, nikolentzos2023, che2017}. The difficulty is that the field has developed a habit of evaluating synthetic data through distributional lenses, measuring how similar synthetic samples are to real ones using feature-level statistics and aggregate distance metrics such as Fr\'{e}chet Inception Distance or Jensen-Shannon divergence. These are sensible measures of generation quality, but they answer a different question from the one that matters most clinically. The relevant operational question is whether augmenting a training set with synthetic patients actually produces a model that predicts real patient outcomes more accurately. Whether distributional similarity translates into predictive utility has received far less systematic attention, particularly for small rare tabular clinical datasets in IoMT settings \cite{kababji2023, espinosa2023}.
+
+This paper addresses that gap through a controlled experimental pipeline applied to the PBC complete-case dataset. Three deep generative models are trained from scratch in TensorFlow 2.15: a Vanilla GAN, a Conditional Tabular GAN that conditions generation on the patient outcome label, and a Tabular Variational Autoencoder. Two pre-augmentation quality controls are then applied. The first is an IQR-based physiological plausibility filter that removes synthetic records containing biomarker values outside Tukey fence bounds computed from real training patients. The second is a multi-method consensus voting mechanism that identifies a high-confidence synthetic subset agreed upon independently by all three generative models, based on the premise that a synthetic patient produced in the same region of feature space by three structurally different architectures is more likely to reflect a genuine distributional pattern than one produced by any single model.
+
+The contributions of this work are as follows. First, three deep generative architectures are compared for tabular liver cirrhosis data in an IoMT setting, all built from scratch, allowing a fair head-to-head assessment of adversarial and variational approaches on the same dataset. Second, an IQR-based plausibility filter and a multi-method consensus voting mechanism are introduced as pre-augmentation quality controls. Third, a predictive utility evaluation framework is applied that benchmarks each augmentation strategy against both a real-data baseline and a SMOTE oversampling baseline, using 5-fold cross-validation, bootstrap confidence intervals, and McNemar's exact test on a held-out real test set.
+
+The paper proceeds as follows. Section~\ref{sec:related} reviews relevant literature. Section~\ref{sec:methodology} describes the dataset, generative architectures, filtering pipeline, and experimental design. Section~\ref{sec:results} presents results. Section~\ref{sec:conclusion} draws conclusions.
+
+% ---------------------------------------------------------------
+% Section II: Related Work
+% ---------------------------------------------------------------
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Synthetic Data Generation for Healthcare}
+
+Synthetic data generation has attracted sustained research interest as a means of making healthcare datasets more widely available without compromising patient privacy \cite{goncalves2020, gonzales2023, guillaudeux2023}. Gon\c{c}alves et al. conducted a systematic review of generation and evaluation methods, establishing that downstream utility, meaning the capacity of synthetic data to substitute for real data in analytical tasks, deserves equal attention alongside privacy preservation \cite{goncalves2020}. Gonzales et al. surveyed clinical applications across oncology, cardiology, and infectious disease, identifying tabular electronic health records as the domain with the greatest unmet need for robust generation methods \cite{gonzales2023}.
+
+Classical augmentation approaches have well-documented limitations in this context. SMOTE addresses class imbalance by interpolating between existing minority-class training points and cannot generate samples outside the convex hull of observed data \cite{kumari2024, figueira2022}. Rule-based and parametric generators offer transparency but fail to capture the non-linear dependencies characterising clinical biomarker profiles. Deep generative models learn these dependencies directly from data and have become the dominant approach for tabular clinical synthesis \cite{yan2022, nikolentzos2023}.
+
+\subsection{GAN Architectures for Tabular Clinical Data}
+
+Generative Adversarial Networks train a generator against a discriminator through adversarial feedback \cite{vega2020}. In clinical settings, Che et al. showed that GAN-augmented training data can improve risk prediction from electronic health records \cite{che2017}, and Choi et al. proposed medGAN for generating multi-label discrete patient records \cite{choi2017}. Standard GAN architectures are prone to mode collapse and training instability when applied to heterogeneous tabular data combining continuous biomarkers, binary indicators, and ordinal staging variables \cite{lenz2021, espinosa2023}. The Conditional Tabular GAN addresses these limitations by conditioning both generator and discriminator on a class label, ensuring minority classes receive proportional representation \cite{vega2020, sharma2024}. The Tabular Variational Autoencoder takes a complementary approach, optimising a probabilistic lower bound on the data likelihood. Its encoder maps patient records into a continuous latent space, while its decoder reconstructs records from samples drawn from that distribution, generating new patients at inference time by sampling from a standard normal prior \cite{nikolentzos2023}.
+
+\subsection{Synthetic Data for IoMT}
+
+IoMT infrastructures produce continuous streams of physiological measurements that clinical decision support systems must process reliably, requiring large labelled training sets \cite{guo2021, obeid2023}. Meidan et al.\ showed that GAN-generated data improved anomaly detection in IoMT systems \cite{meidan2018}. D'Amico et al.\ demonstrated that AI-generated synthetic cohorts can accelerate research in haematological conditions where real patient numbers are similarly limited \cite{damico2023}. Kim et al.\ showed that synthetic augmentation improves survival prediction in early-onset colorectal cancer, a rare-disease tabular setting structurally similar to PBC \cite{kim2024}. Tucker et al.\ established that high-fidelity synthetic patient data can substitute for real data in evaluating healthcare software, provided quality is rigorously assessed \cite{tucker2020}.
+
+\subsection{From Distributional Fidelity to Predictive Utility}
+
+The dominant evaluation framework measures how closely generated samples resemble real data through marginal distributions and aggregate distance metrics \cite{yan2022, figueira2022, dankar2022}. Espinosa and Figueira found only weak correlation between distributional and utility metrics across a range of datasets \cite{espinosa2023}. Foraker et al.\ showed that analytical results from synthetic data do not reliably replicate real-data findings even when distributional similarity is high \cite{foraker2020}. Kababji et al.\ concluded that the ability to reproduce hazard ratios from real patient data is a more clinically meaningful benchmark than FID alone \cite{kababji2023}. Kaabachi et al.\ identified the absence of held-out real-patient evaluation as a critical and recurring gap in the medical synthetic data literature \cite{kaabachi2023}. The present work is designed specifically to fill that gap.
+
+\subsection{Multi-Model Ensemble Strategies and the Positioning of This Work}
+
+Jiang et al.\ proposed a multi-source data augmentation framework for industrial fault diagnosis in which several GAN models are trained independently and their outputs pooled through cooperative and competitive mechanisms \cite{jiang2023}. Their central observation is that individual GAN models converge to different regions of the data manifold, so combining outputs produces a more representative augmented set than any single generator. The consensus voting mechanism introduced here shares this intuition but departs from it in two important respects: three structurally distinct architectures are used rather than multiple instances of the same one, and acceptance requires cross-architecture agreement rather than simply pooling all outputs.
+
+Within the IoMT domain, Pandey et al.\ introduced MF-CGAN, a multifeature conditional GAN published in this journal that generates synthetic network traffic and health metrics by conditioning on multiple concurrent variables \cite{pandey2025}. The present work complements MF-CGAN in the clinical direction: the data consists of continuous laboratory biomarkers, ordinal disease staging, and binary clinical indicators measured at a single visit. The evaluation criterion differs as well: classifiers are trained on augmented data and tested exclusively on real held-out patients. The consensus voting mechanism introduced here has no analogue in MF-CGAN, and the results reveal that its primary benefit is not improved peak accuracy but substantially reduced model variance across cross-validation folds.
+
+% ---------------------------------------------------------------
+% Section III: Methodology
+% ---------------------------------------------------------------
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Dataset and Preprocessing}
+
+The dataset used in this study is the Mayo Clinic Primary Biliary Cirrhosis trial obtained from the UCI Machine Learning Repository \cite{kanwal2020}. The raw file contains 418 patient records and 20 columns. The patient identifier column carries no clinical information and is discarded. The remaining 19 columns include 11 continuous laboratory measurements (N\_Days, Age, Bilirubin, Cholesterol, Albumin, Copper, Alk\_Phos, SGOT, Tryglicerides, Platelets, and Prothrombin); five binary clinical indicators (Sex, Drug, Ascites, Hepatomegaly, and Spiders); two ordinal variables, Edema coded as 0 for no oedema, 1 for slight or suspected oedema, and 2 for confirmed oedema, and Stage coded from 1 through 4; and the binary survival outcome Status.
+
+Patients 313 through 418 belong to an observational cohort missing between 9 and 10 laboratory measurements each. Complete-case analysis is applied: any row containing at least one missing value is removed, yielding 276 complete patient records. Categorical columns are numerically encoded: Sex is Female~=~0, Male~=~1; Drug is Placebo~=~0, D-penicillamine~=~1; Ascites, Hepatomegaly, and Spiders are No~=~0, Yes~=~1; Status is censored or transplanted~=~0, died~=~1.
+
+Fig.~\ref{fig:corrmatrix} shows the Pearson correlation matrix across all 276 complete cases. Bilirubin shows strong positive correlations with Copper ($r = 0.46$), SGOT ($r = 0.42$), Cholesterol ($r = 0.39$), and Prothrombin ($r = 0.33$), reflecting the interlinked nature of hepatic synthetic and excretory function in PBC. N\_Days is negatively correlated with Bilirubin ($r = -0.43$) and Copper ($r = -0.36$), consistent with more severe biochemical profiles being associated with shorter survival.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{eda_correlation_matrix.png}
+  \caption{Pearson correlation matrix computed across all 276 complete cases for the 11 continuous clinical features. Strong positive associations are visible between Bilirubin and Copper ($r = 0.46$), Bilirubin and SGOT ($r = 0.42$), and Bilirubin and Cholesterol ($r = 0.39$). Negative associations between N\_Days and the liver damage markers reflect the clinical reality that patients with more severe biochemical profiles had shorter follow-up durations before the survival endpoint was reached.}
+  \label{fig:corrmatrix}
+\end{figure}
+
+The 276 records are divided into a training set of 193 patients and a held-out test set of 83 patients using stratified random splitting with seed 42, preserving class balance in both partitions. The training set contains 115 survivors and 78 deceased patients. A MinMaxScaler is fitted on the training set alone and maps all 19 features to $[0, 1]$. The overall pipeline is illustrated in Fig.~\ref{fig:pipeline}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig9_pipeline_flowchart.png}
+  \caption{End-to-end synthetic data pipeline for the PBC liver cirrhosis study. The raw 418-patient dataset passes through a complete-case filter and preprocessing stage before the 193-patient training set feeds three parallel generative models. Each model's 500 generated records pass through an IQR plausibility filter before all three filtered pools enter the consensus voting stage. FID scoring, statistical tests, and predictive utility evaluation are then performed on the resulting augmented datasets.}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Generative Model Architectures}
+
+All three models are implemented in TensorFlow 2.15 without third-party synthetic data libraries. Each model receives MinMaxScaled training data and produces samples in the same normalised range, which are inverse-transformed to recover original clinical units after generation.
+
+\textbf{Vanilla GAN.} The generator maps a 100-dimensional noise vector $\mathbf{z} \sim \mathcal{N}(0, \mathbf{I})$ through two dense hidden layers of 128 and 256 units with Leaky ReLU activations ($\alpha = 0.2$) and batch normalisation (momentum $= 0.8$) to a sigmoid output of dimension 18. The discriminator maps each patient record through two dense layers of 256 and 128 units with Leaky ReLU activations and dropout ($p = 0.3$). Both networks use the Adam optimiser with learning rate $2 \times 10^{-4}$ and $\beta_1 = 0.5$ for 500 epochs at batch size 32. The adversarial objectives are:
+\begin{align}
+\mathcal{L}_D &= -\mathbb{E}[\log D(\mathbf{x})] - \mathbb{E}[\log(1 - D(G(\mathbf{z})))] \\
+\mathcal{L}_G &= -\mathbb{E}[\log D(G(\mathbf{z}))]
+\end{align}
+
+\textbf{Conditional Tabular GAN (CTGAN).} The CTGAN extends the Vanilla GAN by conditioning both generator and discriminator on the patient outcome label $\mathbf{y}$, supplied as a two-dimensional one-hot vector. The generator receives the concatenation $[\mathbf{z} \| \mathbf{y}]$ and the discriminator receives $[\mathbf{x} \| \mathbf{y}]$. Training uses balanced mini-batches drawing equal numbers of survivors and deceased patients at each step. The conditional adversarial objectives are:
+\begin{align}
+\mathcal{L}_D &= -\mathbb{E}[\log D(\mathbf{x}, \mathbf{y})] - \mathbb{E}[\log(1 - D(G(\mathbf{z}, \mathbf{y}), \mathbf{y}))] \\
+\mathcal{L}_G &= -\mathbb{E}[\log D(G(\mathbf{z}, \mathbf{y}), \mathbf{y})]
+\end{align}
+Architecture and optimiser settings match the Vanilla GAN, with training for 300 epochs.
+
+\textbf{Tabular Variational Autoencoder (TVAE).} The encoder maps each patient record through two dense layers of 128 and 64 units with ReLU activations to a mean vector $\boldsymbol{\mu}$ and log-variance vector $\log\boldsymbol{\sigma}^2$ of dimension 32. A latent sample is drawn using the reparameterisation trick: $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\varepsilon} \odot \exp(0.5 \cdot \log\boldsymbol{\sigma}^2)$, where $\boldsymbol{\varepsilon} \sim \mathcal{N}(0, \mathbf{I})$. The decoder maps $\mathbf{z}$ through two dense layers of 64 and 128 units with ReLU activations to a sigmoid output of dimension 18. The training objective is the Evidence Lower Bound (ELBO):
+\begin{equation}
+\mathcal{L}_{\text{TVAE}} = \mathbb{E}\!\left[\|\mathbf{x} - \hat{\mathbf{x}}\|^2\right] + \beta \cdot D_{\text{KL}}\!\left(\mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\sigma}^2) \,\|\, \mathcal{N}(\mathbf{0}, \mathbf{I})\right)
+\end{equation}
+with $\beta = 1.0$, Adam optimiser at learning rate $1 \times 10^{-3}$, batch size 32, and 300 training epochs. Each model generates 500 synthetic records.
+
+Fig.~\ref{fig:training} shows the training loss curves for all three models. The Vanilla GAN stabilises with generator loss near 0.8 and discriminator loss near 1.3 after approximately 100 epochs. The CTGAN experiences more volatile early training, with the generator loss peaking near 3.0 around epoch 30 before both networks converge by epoch 100. The TVAE ELBO loss drops sharply from 0.15 to approximately 0.08 by epoch 50 and then remains stable through the remaining 250 epochs.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig0_training_losses.png}
+  \caption{Training loss curves for all three generative models. Left: Vanilla GAN generator (blue) and discriminator (red) losses over 500 epochs, stabilising near 0.8 and 1.3 respectively. Centre: CTGAN losses over 300 epochs, showing a pronounced peak near epoch 30 followed by convergence. Right: TVAE total ELBO loss over 300 epochs, falling sharply from 0.15 to approximately 0.08 by epoch 50 and then remaining stable.}
+  \label{fig:training}
+\end{figure}
+
+\subsection{IQR-Based Physiological Plausibility Filter}
+
+A Tukey fence filter is applied independently to each model's output. For each of the 11 continuous clinical features, the first and third quartiles, $Q_1$ and $Q_3$, are computed from the real training set alone. A synthetic record is retained only if every continuous feature value falls within $[Q_1 - 1.5 \cdot \text{IQR},\; Q_3 + 1.5 \cdot \text{IQR}]$. A single out-of-range value disqualifies the entire record. Binary and ordinal features are exempt because they are snapped to valid integer ranges during post-processing.
+
+Fig.~\ref{fig:iqr} illustrates the filter effect on Bilirubin. For the GAN and CTGAN, the unfiltered distribution extends well beyond 15~mg/dL. The filter removes these records, leaving post-filter distributions that closely follow the real patient density near 0 to 5~mg/dL. The TVAE shows a qualitatively different pattern: the pre-filter and post-filter distributions are nearly identical because the smooth Gaussian latent space rarely extrapolates to extreme values, though the TVAE distribution is shifted rightward relative to real patients.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig2_iqr_filtering.png}
+  \caption{Effect of IQR-based Tukey fence filtering on the Bilirubin distribution for all three generative models. Grey bars show real patient density. Pink bars show unfiltered synthetic distribution; coloured bars (blue for GAN, orange for CTGAN, green for TVAE) show the post-filter distribution. The GAN and CTGAN produce records extending beyond 15~mg/dL that the filter removes. The TVAE retains all generated records but produces a distribution shifted rightward relative to real patients, peaking around 2--3~mg/dL rather than the real patient peak near 0--1~mg/dL.}
+  \label{fig:iqr}
+\end{figure}
+
+Applied to 500 generated records per model, the filter retained 226 GAN records (45.2\%), 210 CTGAN records (42.0\%), and all 500 TVAE records (100\%).
+
+\subsection{Multi-Method Consensus Voting}
+
+A consensus voting mechanism is applied that retains only records independently corroborated by all three generative models. This approach is related to the multi-source data augmentation strategy of Jiang et al.\ \cite{jiang2023}, who combine outputs from multiple independently trained GANs to reduce distribution skewness. The present work differs in that three structurally distinct architectures are used and acceptance requires cross-architecture agreement rather than simply pooling all outputs.
+
+A StandardScaler is fitted on the union of all three filtered datasets. For each candidate record from one model, the minimum Euclidean distance to any record from each of the other two models is computed in standardised space. The candidate is accepted if both other models have a record within tolerance $= 0.5$ standardised units. This process repeats with each filtered dataset as the candidate pool in turn, and exact duplicates are removed from the final set.
+
+Fig.~\ref{fig:consensus} shows the breakdown of the 782 consensus records. GAN contributed 137 records (17.5\%), CTGAN contributed 161 (20.6\%), and TVAE contributed 484 (61.9\%). The TVAE's dominant contribution reflects both its complete IQR retention and its broader coverage of feature space.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig5_consensus_distribution.png}
+  \caption{Source composition of the 782-record consensus set. Left: absolute record counts per generative method after consensus voting. Right: proportional contribution as a pie chart. TVAE contributes 61.9\% of consensus records, reflecting its higher retention rate after IQR filtering and its broader latent space coverage. GAN and CTGAN contribute 17.5\% and 20.6\% respectively.}
+  \label{fig:consensus}
+\end{figure}
+
+\subsection{Synthetic Data Quality Evaluation}
+
+Distributional fidelity is assessed using a tabular proxy Fr\'{e}chet Inception Distance computed on the 18-dimensional feature vectors:
+\begin{equation}
+\text{FID} = \|\boldsymbol{\mu}_r - \boldsymbol{\mu}_s\|^2 + \text{Tr}\!\left(\boldsymbol{\Sigma}_r + \boldsymbol{\Sigma}_s - 2(\boldsymbol{\Sigma}_r \boldsymbol{\Sigma}_s)^{1/2}\right)
+\end{equation}
+Lower values indicate greater distributional alignment. Per-feature Kolmogorov-Smirnov tests, Jensen-Shannon divergence, Cohen's $d$, Shapiro-Wilk normality tests, and chi-square tests for categorical features provide a granular distributional profile. Privacy risk is assessed through nearest-neighbour distance analysis reporting the percentage of synthetic records within a standardised distance of 1.0 from any real training patient.
+
+\subsection{Predictive Utility Evaluation}
+
+Predictive utility is evaluated by training Random Forest (RF), Gradient Boosting (GB), and Logistic Regression (LR) classifiers under four training scenarios and testing on the 83-patient held-out real test set:
+\begin{itemize}
+  \item \textbf{Scenario A:} 193 real patients only (baseline).
+  \item \textbf{Scenario B:} 193 real + 210 IQR-filtered CTGAN records (403 total). CTGAN is selected here because it achieves the lowest FID among individual methods.
+  \item \textbf{Scenario C:} 193 real + 782 consensus records (975 total).
+  \item \textbf{Scenario D:} 193 real patients augmented with SMOTE oversampling (classical baseline).
+\end{itemize}
+All classifiers use default scikit-learn hyperparameters. Evaluation metrics are Accuracy, F1, Precision, Recall, and AUC-ROC. 5-fold stratified cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test complement the single-split evaluation. All random seeds are fixed at 42.
+
+% ---------------------------------------------------------------
+% Section IV: Results and Discussion
+% ---------------------------------------------------------------
+\section{Results and Discussion}
+\label{sec:results}
+
+\subsection{Synthetic Data Retention and IQR Filtering}
+
+Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. The GAN and CTGAN each reject more than half of their generated records; the TVAE retains all 500. The consensus procedure accepts 782 records from the union of the three filtered pools.
+
+\begin{table}[H]
+  \centering
+  \caption{Synthetic Data Retention and FID Scores}
+  \label{tab:retention}
+  \begin{tabular}{lcccc}
+    \toprule
+    Method & Generated & Retained & Retention & FID \\
+    \midrule
+    Vanilla GAN   & 500 & 226 & 45.2\% & 0.0972 \\
+    CTGAN         & 500 & 210 & 42.0\% & 0.0751 \\
+    TVAE          & 500 & 500 & 100.0\% & 0.2194 \\
+    Consensus     & ---  & 782 & ---   & 0.1116 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Distributional Fidelity}
+
+Fig.~\ref{fig:fid} shows the tabular FID scores for all four synthetic datasets. CTGAN achieves the lowest FID of 0.075, followed by the Vanilla GAN at 0.097. The TVAE produces an FID of 0.219 despite retaining all generated records, confirming that smooth variational generation reduces distributional sharpness. The consensus set scores 0.112.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig1_fid_comparison.png}
+  \caption{Tabular Fr\'{e}chet Inception Distance scores for all four synthetic datasets. Lower scores indicate greater distributional alignment with real training data. CTGAN achieves the lowest FID at 0.075. The TVAE, despite retaining all 500 generated records through the IQR filter, shows the highest FID at 0.219, reflecting over-smoothing of clinical feature distributions. The consensus set scores 0.112.}
+  \label{fig:fid}
+\end{figure}
+
+Fig.~\ref{fig:distributions} compares feature distributions for six representative clinical variables. Albumin and Prothrombin are well reproduced by GAN and CTGAN. Bilirubin is the most challenging feature: the TVAE distribution is noticeably shifted rightward relative to real patients, while GAN and CTGAN align better with the concentrated low-value peak. Cholesterol and Copper show mixed performance across all methods.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig3_distribution_comparison.png}
+  \caption{Feature distribution comparison between real training data (blue) and all four synthetic methods for six representative clinical variables: Bilirubin, Albumin, Prothrombin, Cholesterol, Copper, and SGOT. GAN and CTGAN reproduce Albumin and Prothrombin closely, while all methods show distributional divergence on the heavily right-skewed Bilirubin and Cholesterol features. The TVAE distribution is notably shifted rightward on Bilirubin.}
+  \label{fig:distributions}
+\end{figure}
+
+Fig.~\ref{fig:corrcomparison} compares the Pearson correlation structure of real patient data against the consensus synthetic dataset. The consensus set preserves the dominant pairwise associations, including the strong positive Bilirubin-Copper relationship and the negative N\_Days-Bilirubin association, with moderate attenuation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig4_correlation_heatmap.png}
+  \caption{Pearson correlation structure comparison between real patient data (left) and consensus synthetic data (right). The consensus set preserves the dominant clinical associations, including the strong positive Bilirubin-Copper relationship ($r = 0.46$ in real data) and the negative N\_Days-Bilirubin association ($r = -0.43$), though weaker correlations are attenuated.}
+  \label{fig:corrcomparison}
+\end{figure}
+
+Fig.~\ref{fig:tsne} shows the t-SNE projection of real patients and each synthetic method into two dimensions. The GAN and CTGAN filtered sets mix reasonably with the real patient manifold. The TVAE points spread more widely, with portions falling outside the real patient contours. The consensus set fills the central high-density region of the real patient manifold, confirming that cross-model agreement selects records from the most representative zone of feature space.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{tsne_real_vs_synthetic.png}
+  \caption{t-SNE two-dimensional projection of real patients (black) and each synthetic method in the original 18-dimensional feature space, with real patient density shown as contour lines. GAN and CTGAN filtered sets show reasonable overlap with the real patient manifold. TVAE points spread more widely, with portions falling outside the real patient density contours. The consensus set fills the central high-density region, confirming that cross-model agreement selects records from the most representative zone of feature space.}
+  \label{fig:tsne}
+\end{figure}
+
+Per-feature KS tests reveal a consistent pattern. The filtered GAN shows no significant distributional difference from real training data on N\_Days (KS~= 0.095, $p = 0.282$), Age (KS~= 0.067, $p = 0.707$), and Albumin (KS~= 0.116, $p = 0.111$), but diverges significantly on Bilirubin (KS~= 0.468), Alk\_Phos (KS~= 0.688), and SGOT (KS~= 0.325). The TVAE diverges significantly on all 11 continuous features. The consensus set achieves substantially smaller KS statistics on the most challenging biomarkers: Bilirubin KS~= 0.164 vs.\ GAN's 0.468; Alk\_Phos KS~= 0.181 vs.\ GAN's 0.688.
+
+\subsection{Privacy Risk Assessment}
+
+Fig.~\ref{fig:privacy} shows the privacy risk analysis. GAN and CTGAN distributions are centred well above the risk threshold, indicating that most adversarially generated records fall at a safe distance from any real patient. The TVAE and consensus distributions have substantial mass below the threshold.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{privacy_risk_analysis.png}
+  \caption{Privacy disclosure risk analysis using nearest-neighbour distances in standardised feature space. Left: violin plots of distances from each synthetic record to its closest real training patient. The red dashed line marks the risk threshold at the 5th percentile of real-to-real distances (1.467). GAN and CTGAN distributions are centred above this threshold. Right: near-duplicate rates by method. GAN (5.3\%) and CTGAN (9.0\%) present low privacy risk, while TVAE (38.2\%) and consensus (28.4\%) warrant caution in privacy-sensitive IoMT deployments.}
+  \label{fig:privacy}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Privacy Risk Analysis}
+  \label{tab:privacy}
+  \begin{tabular}{lcccc}
+    \toprule
+    Method & Records & Mean dist. & Near-dup. & Rate \\
+    \midrule
+    GAN (filtered)   & 226 & 2.391 & 12  & 5.3\%  \\
+    CTGAN (filtered) & 210 & 2.286 & 19  & 9.0\%  \\
+    TVAE (filtered)  & 500 & 1.591 & 191 & 38.2\% \\
+    Consensus        & 782 & 1.754 & 222 & 28.4\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Predictive Utility on the Held-Out Test Set}
+
+Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across Scenarios A, B, and C on the 83-patient real held-out test set. The curves for all three scenarios lie close together for every classifier, with confidence band overlap across all scenarios. For Logistic Regression, Scenario C shows a modest upward shift relative to the baseline, with AUC improving from 0.829 to 0.855.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{roc_curves.png}
+  \caption{ROC curves by classifier and training scenario on the 83-patient real held-out test set. Random Forest (left), Gradient Boosting (centre), Logistic Regression (right). All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. For Logistic Regression, Scenario C (consensus augmentation) produces the highest AUC at 0.855.}
+  \label{fig:roc}
+\end{figure}
+
+Fig.~\ref{fig:auc} shows AUC scores across all three classifiers and three scenarios with reference lines at AUC~=~0.5 (random classifier) and AUC~=~0.8 (good discrimination threshold). Every scenario and classifier combination exceeds 0.8 comfortably, confirming that baseline real-data models are already clinically useful.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{auc_detailed_comparison.png}
+  \caption{AUC scores across all three classifiers and training scenarios A, B, and C. The green dashed reference line marks AUC~= 0.8 and the red dashed line marks AUC~= 0.5. All combinations exceed 0.8 comfortably. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. Logistic Regression under Scenario C achieves the highest AUC gain from augmentation, reaching 0.855.}
+  \label{fig:auc}
+\end{figure}
+
+Fig.~\ref{fig:heatmap} presents the F1-score heatmap across Scenarios A, B, and C. The darkest cells appear in Scenario A for Gradient Boosting and Random Forest at 0.785. Gradient Boosting drops to 0.738 under Scenario C, making it the only classifier whose F1 falls monotonically as augmentation volume increases.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig6_performance_heatmap.png}
+  \caption{F1-score heatmap across Scenarios A, B, and C for all three classifiers. Darker blue indicates higher F1. Scenario A achieves the highest F1 scores for Gradient Boosting and Random Forest at 0.785. Under Scenario C, Gradient Boosting degrades to 0.738 while Logistic Regression and Random Forest hold at 0.773 and 0.784 respectively.}
+  \label{fig:heatmap}
+\end{figure}
+
+Table~\ref{tab:performance} reports complete test-set metrics across all four scenarios.
+
+\begin{table*}[t]
+  \centering
+  \caption{Test-Set Classification Performance (83 Real Held-Out Patients)}
+  \label{tab:performance}
+  \begin{tabular}{llccccccc}
+    \toprule
+    Scenario & Classifier & $n_{\text{train}}$ & Accuracy & F1 & Precision & Recall & AUC \\
+    \midrule
+    A: Baseline       & Random Forest      & 193 & 0.7831 & 0.7848 & 0.7901 & 0.7831 & 0.8479 \\
+    A: Baseline       & Gradient Boosting  & 193 & 0.7831 & 0.7852 & 0.7955 & 0.7831 & \textbf{0.8776} \\
+    A: Baseline       & Logistic Regression& 193 & 0.7711 & 0.7735 & 0.7940 & 0.7711 & 0.8291 \\
+    \midrule
+    B: Real + CTGAN   & Random Forest      & 403 & 0.7590 & 0.7616 & 0.7782 & 0.7590 & 0.8418 \\
+    B: Real + CTGAN   & Gradient Boosting  & 403 & 0.7590 & 0.7616 & 0.7782 & 0.7590 & 0.8721 \\
+    B: Real + CTGAN   & Logistic Regression& 403 & 0.7590 & 0.7616 & 0.7782 & 0.7590 & 0.8455 \\
+    \midrule
+    C: Real + Consensus & Random Forest    & 975 & 0.7831 & 0.7841 & 0.7860 & 0.7831 & 0.8539 \\
+    C: Real + Consensus & Gradient Boosting& 975 & 0.7349 & 0.7377 & 0.7617 & 0.7349 & 0.8321 \\
+    C: Real + Consensus & Logistic Regression & 975 & 0.7711 & 0.7731 & 0.7807 & 0.7711 & 0.8552 \\
+    \midrule
+    D: Real + SMOTE   & Random Forest      & 230 & 0.7470 & 0.7496 & 0.7628 & 0.7470 & 0.8388 \\
+    D: Real + SMOTE   & Gradient Boosting  & 230 & \textbf{0.8072} & \textbf{0.8087} & 0.8140 & 0.8072 & 0.8661 \\
+    D: Real + SMOTE   & Logistic Regression& 230 & 0.7711 & 0.7735 & 0.7940 & 0.7711 & 0.8297 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Cross-Validation Stability}
+
+Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Consensus augmentation in Scenario C produces the highest mean CV AUC for both Random Forest (0.917) and Gradient Boosting (0.892). More importantly, the standard deviation of CV AUC falls sharply: Random Forest variance drops from 0.054 in Scenario A to 0.014 in Scenario C, a four-fold reduction.
+
+\begin{table}[H]
+  \centering
+  \caption{5-Fold Cross-Validation AUC (Mean $\pm$ Std)}
+  \label{tab:cv}
+  \begin{tabular}{lccc}
+    \toprule
+    Scenario & RF & GB & LR \\
+    \midrule
+    A: Baseline       & $0.884 \pm 0.054$ & $0.854 \pm 0.071$ & $0.852 \pm 0.049$ \\
+    B: Real + CTGAN   & $0.891 \pm 0.028$ & $0.873 \pm 0.032$ & $0.867 \pm 0.034$ \\
+    C: Real + Consensus & $\mathbf{0.917 \pm 0.014}$ & $\mathbf{0.892 \pm 0.020}$ & $0.873 \pm 0.030$ \\
+    D: Real + SMOTE   & $0.886 \pm 0.045$ & $0.860 \pm 0.063$ & $0.852 \pm 0.052$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Bootstrap Confidence Intervals and McNemar's Test}
+
+Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidence intervals for test-set AUC and McNemar's exact test results respectively. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.28, confirming that no augmentation scenario produces a statistically significant improvement over the real-data baseline on the 83-patient test set.
+
+\begin{table}[H]
+  \centering
+  \caption{95\% Bootstrap Confidence Intervals for Test-Set AUC}
+  \label{tab:bootstrap}
+  \begin{tabular}{llcc}
+    \toprule
+    Scenario & Classifier & AUC & 95\% CI \\
+    \midrule
+    A: Baseline       & RF  & 0.8479 & [0.754, 0.938] \\
+    A: Baseline       & GB  & 0.8776 & [0.788, 0.948] \\
+    A: Baseline       & LR  & 0.8291 & [0.728, 0.916] \\
+    B: Real + CTGAN   & RF  & 0.8418 & [0.742, 0.934] \\
+    B: Real + CTGAN   & GB  & 0.8721 & [0.776, 0.948] \\
+    B: Real + CTGAN   & LR  & 0.8455 & [0.746, 0.934] \\
+    C: Real + Consensus & RF & 0.8539 & [0.760, 0.933] \\
+    C: Real + Consensus & GB & 0.8321 & [0.731, 0.919] \\
+    C: Real + Consensus & LR & 0.8552 & [0.756, 0.935] \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{McNemar's Exact Test (Augmented vs.\ Baseline)}
+  \label{tab:mcnemar}
+  \begin{tabular}{llcc}
+    \toprule
+    Classifier & Comparison & $p$-value & Significant \\
+    \midrule
+    Random Forest       & A vs.\ B & 0.625 & No \\
+    Random Forest       & A vs.\ C & 1.000 & No \\
+    Gradient Boosting   & A vs.\ B & 0.688 & No \\
+    Gradient Boosting   & A vs.\ C & 0.289 & No \\
+    Logistic Regression & A vs.\ B & 1.000 & No \\
+    Logistic Regression & A vs.\ C & 1.000 & No \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Discussion}
+
+The results offer a nuanced picture of what synthetic augmentation can and cannot achieve on a rare tabular clinical dataset in an IoMT context. On the held-out test set, no augmentation strategy produces a statistically significant improvement over training on real data alone. This is a meaningful finding rather than a failure: the 276-patient PBC dataset contains sufficient signal for Gradient Boosting to reach AUC~= 0.878 without any augmentation, and adding synthetic patients that are distributional approximations of the real data does not substantially change what classifiers learn about the survival decision boundary when evaluated on 83 real patients.
+
+The cross-validation results reveal a genuine benefit that single-split evaluation obscures. Consensus augmentation reduces Random Forest variance four-fold across folds, indicating that the additional synthetic patients stabilise the classifier across different subsets of the training data. In an IoMT deployment setting where a clinical decision support model must perform reliably across patients of different disease stages, ages, and treatment backgrounds, a model with lower cross-validation variance is more trustworthy than one that achieves peak performance on one partition by chance.
+
+Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest and Gradient Boosting trained under Scenario A. Both classifiers rank N\_Days as the most important predictor (RF: 0.133, GB: 0.240), followed by Bilirubin (RF: 0.128, GB: 0.145). Prothrombin and Alk\_Phos follow in both classifiers. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema show low importance. This ranking is clinically coherent and validates the integrity of the preprocessing and modelling pipeline.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{feature_importance.png}
+  \caption{Feature importance rankings from Random Forest (left, blue) and Gradient Boosting (right, orange) trained on real data only under Scenario A. Both classifiers rank N\_Days as the most important predictor (RF: 0.133, GB: 0.240), followed by Bilirubin (RF: 0.128, GB: 0.145). Binary clinical indicators such as Ascites, Drug, Spiders, and Edema show low importance, consistent with the dominant role of continuous laboratory biomarkers in PBC prognosis.}
+  \label{fig:importance}
+\end{figure}
+
+% ---------------------------------------------------------------
+% Section V: Conclusion
+% ---------------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+
+This study investigated whether deep generative synthetic data augmentation can improve liver cirrhosis survival prediction in an IoMT setting, using the Mayo Clinic PBC dataset as a controlled rare-disease tabular data scenario. Three generative architectures were trained from scratch and evaluated through a pipeline that goes beyond distributional fidelity to directly measure predictive utility on real held-out patients.
+
+Two methodological contributions were introduced. An IQR-based physiological plausibility filter removes synthetic records with clinically implausible biomarker values before any downstream use, discarding between 54 and 58 percent of adversarially generated records. A multi-method consensus voting mechanism accepts only synthetic patients corroborated independently by all three generative architectures in standardised feature space.
+
+Three empirical findings stand out. Among individual generative models, CTGAN produces the best distributional fidelity at FID~= 0.075 and the most acceptable privacy profile at 9.0 percent near-duplicates, making it the most suitable model for privacy-constrained IoMT augmentation. On the 83-patient held-out test set, no augmentation scenario achieves a statistically significant improvement over the real-data baseline, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Random Forest cross-validation AUC variance four-fold, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-architecture agreement region stabilise classifiers in a way that random oversampling methods do not.
+
+Future work should examine whether this stability effect translates into improved generalisation on external validation cohorts from different clinical sites. Incorporating differentially private training objectives into the TVAE architecture would address the memorisation risk identified in the privacy analysis. Extending the framework to longitudinal IoMT data streams, where temporal dependencies introduce additional generation challenges beyond those present in single-visit tabular records, represents a further natural direction for this line of research.
+
+% ---------------------------------------------------------------
+% References
+% ---------------------------------------------------------------
+\begin{thebibliography}{99}
+
+\bibitem{guo2021}
+A. Guo, N. Mazumder, D. Ladner, and R. Foraker, ``Predicting mortality among patients with liver cirrhosis in electronic health records with machine learning,'' \textit{PLoS One}, vol.~16, no.~8, p.~e0256428, Aug.~2021.
+
+\bibitem{kanwal2020}
+F. Kanwal, T. Taylor, J. Kramer, Y. Cao, D. Smith, A. Gifford \textit{et al.}, ``Development, validation, and evaluation of a simple machine learning model to predict cirrhosis mortality,'' \textit{JAMA Netw. Open}, vol.~3, no.~11, p.~e2023780, Nov.~2020.
+
+\bibitem{yan2022}
+C. Yan \textit{et al.}, ``A multifaceted benchmarking of synthetic electronic health record generation models,'' \textit{Nat. Commun.}, vol.~13, no.~1, Dec.~2022.
+
+\bibitem{rochner2024}
+P. R\"{o}chner, ``On the fidelity-privacy tradeoff of synthetic cancer registry data,'' \textit{Stud. Health Technol. Inform.}, vol.~314, pp.~75--80, 2024.
+
+\bibitem{kumari2024}
+J. Kumari and R. Siddharthan, ``MMM and MMMSynth: Clustering of heterogeneous tabular data, and synthetic data generation,'' \textit{PLoS One}, vol.~19, no.~5, p.~e0302271, May~2024.
+
+\bibitem{kim2024}
+J. Kim \textit{et al.}, ``Synthetic data improve survival status prediction models in early-onset colorectal cancer,'' \textit{JCO Clin. Cancer Inform.}, no.~8, p.~e2300201, May~2024.
+
+\bibitem{mazein2024}
+A. Mazein \textit{et al.}, ``MeDaX: A knowledge graph on FHIR,'' \textit{Stud. Health Technol. Inform.}, vol.~314, pp.~13--18, 2024.
+
+\bibitem{rashidi2023}
+P. Rashidi \textit{et al.}, ``STNG (Synthetic Tabular Neural Generator): A novel and fully automated platform for synthetic tabular data generation and validation,'' \textit{Res. Sq.}, Dec.~2023.
+
+\bibitem{goncalves2020}
+R. S. Gon\c{c}alves \textit{et al.}, ``Generation and evaluation of synthetic patient data,'' \textit{BMC Med. Res. Methodol.}, vol.~20, no.~1, May~2020.
+
+\bibitem{kababji2023}
+S. E. Kababji \textit{et al.}, ``Evaluating the utility and privacy of synthetic breast cancer clinical trial data sets,'' \textit{JCO Clin. Cancer Inform.}, no.~7, p.~e2300116, Nov.~2023.
+
+\bibitem{lenz2021}
+S. Lenz \textit{et al.}, ``Deep generative models in DataSHIELD,'' \textit{BMC Med. Res. Methodol.}, vol.~21, no.~1, Apr.~2021.
+
+\bibitem{nemzer2021}
+L. R. Nemzer \textit{et al.}, ``Critical and ictal phases in simulated EEG signals on a small-world network,'' \textit{Front. Comput. Neurosci.}, vol.~14, p.~583350, Jan.~2021.
+
+\bibitem{wang2021}
+Y. Wang \textit{et al.}, ``Generating and evaluating cross-sectional synthetic electronic healthcare data: Preserving data utility and patient privacy,'' \textit{Comput. Intell.}, vol.~37, no.~2, pp.~819--851, May~2021.
+
+\bibitem{figueira2022}
+S. Figueira and B. Vaz, ``Survey on synthetic data generation, evaluation methods and GANs,'' \textit{Mathematics}, vol.~10, no.~15, p.~2733, Aug.~2022.
+
+\bibitem{tolas2024}
+T. Tolas \textit{et al.}, ``GeMSyD: Generic framework for synthetic data generation,'' \textit{Data}, vol.~9, no.~1, p.~14, Jan.~2024.
+
+\bibitem{zhu2024}
+L. Zhu, ``Synthetic data generation by diffusion models,'' \textit{Natl. Sci. Rev.}, vol.~11, no.~8, p.~nwae276, Aug.~2024.
+
+\bibitem{wang2024}
+J. Wang \textit{et al.}, ``Validation assessment of privacy-preserving synthetic electronic health record data: Comparison of original versus synthetic data on real-world COVID-19 vaccine effectiveness,'' \textit{Pharmacoepidemiol. Drug Saf.}, vol.~33, no.~9, p.~e70019, Sep.~2024.
+
+\bibitem{gonzales2023}
+A. Gonzales, G. Guruswamy, and S. R. Smith, ``Synthetic data in health care: A narrative review,'' \textit{PLoS Digit. Health}, vol.~2, no.~1, p.~e0000082, Jan.~2023.
+
+\bibitem{aznan2019}
+N. K. N. Aznan \textit{et al.}, ``Simulating brain signals: Creating synthetic EEG data via neural-based generative models for improved SSVEP classification,'' in \textit{Proc. Int. Joint Conf. Neural Netw.}, Jul.~2019, pp.~1--8.
+
+\bibitem{vega2020}
+B. Vega-M\'{a}rquez \textit{et al.}, ``Generation of synthetic data with conditional generative adversarial networks,'' \textit{Log. J. IGPL}, vol.~28, no.~6, pp.~1098--1114, Dec.~2020.
+
+\bibitem{myles2023}
+A. Myles \textit{et al.}, ``The potential synergies between synthetic data and in silico trials in relation to generating representative virtual population cohorts,'' \textit{Prog. Biomed. Eng.}, vol.~5, no.~2, p.~023001, Apr.~2023.
+
+\bibitem{eckardt2024}
+J.-N. Eckardt \textit{et al.}, ``Mimicking clinical trials with synthetic acute myeloid leukemia patients using generative artificial intelligence,'' \textit{NPJ Digit. Med.}, vol.~7, no.~1, Apr.~2024.
+
+\bibitem{kaabachi2023}
+H. Kaabachi \textit{et al.}, ``A scoping review of privacy and utility metrics in medical synthetic data,'' \textit{medRxiv}, Nov.~2023.
+
+\bibitem{guillaudeux2023}
+J. Guillaudeux \textit{et al.}, ``Patient-centric synthetic data generation, no reason to risk re-identification in biomedical data analysis,'' \textit{NPJ Digit. Med.}, vol.~6, no.~1, Mar.~2023.
+
+\bibitem{damico2023}
+R. D'Amico \textit{et al.}, ``Synthetic data generation by artificial intelligence to accelerate research and precision medicine in hematology,'' \textit{JCO Clin. Cancer Inform.}, no.~7, p.~e2300021, Jul.~2023.
+
+\bibitem{kuo2021}
+T. T. Kuo \textit{et al.}, ``Synthetic acute hypotension and sepsis datasets based on MIMIC-III,'' \textit{arXiv}, Dec.~2021.
+
+\bibitem{foraker2020}
+R. E. Foraker \textit{et al.}, ``Spot the difference: Comparing results of analyses from real patient data and synthetic derivatives,'' \textit{JAMIA Open}, vol.~3, no.~4, pp.~557--566, Dec.~2020.
+
+\bibitem{banerjee2022}
+A. Banerjee and T. Bishop, ``dsSynthetic: Synthetic data generation for the DataSHIELD federated analysis system,'' \textit{Res. Sq.}, Feb.~2022.
+
+\bibitem{espinosa2023}
+J. Espinosa and S. Figueira, ``On the quality of synthetic generated tabular data,'' \textit{Mathematics}, vol.~11, no.~15, p.~3278, Jul.~2023.
+
+\bibitem{diller2020}
+G. P. Diller \textit{et al.}, ``Utility of deep learning networks for the generation of artificial cardiac magnetic resonance images in congenital heart disease,'' \textit{BMC Med. Imaging}, vol.~20, no.~1, Sep.~2020.
+
+\bibitem{jeanson2024}
+F. Jeanson \textit{et al.}, ``Medical calculators derived synthetic cohorts: A novel method for generating synthetic patient data,'' \textit{Sci. Rep.}, vol.~14, no.~1, May~2024.
+
+\bibitem{dankar2022}
+F. K. Dankar \textit{et al.}, ``A multi-dimensional evaluation of synthetic data generators,'' \textit{IEEE Access}, vol.~10, pp.~12438--12454, 2022.
+
+\bibitem{walonoski2020}
+J. Walonoski \textit{et al.}, ``Synthea novel coronavirus (COVID-19) model and synthetic data set,'' \textit{Intell.-Based Med.}, vol.~1--2, p.~100007, Dec.~2020.
+
+\bibitem{howie2024}
+B. Howie \textit{et al.}, ``Synthetic generation of patient service utilization data: A scalability study,'' \textit{Stud. Health Technol. Inform.}, vol.~314, pp.~155--160, 2024.
+
+\bibitem{adams2024}
+L. B. Adams \textit{et al.}, ``On the fidelity versus privacy and utility trade-off of synthetic patient data,'' \textit{medRxiv}, Dec.~2024.
+
+\bibitem{yale2020}
+A. Yale \textit{et al.}, ``Synthesizing quality open data assets from private health research studies,'' in \textit{Big Data Analytics}, Cham: Springer, 2020, pp.~324--344.
+
+\bibitem{who2025}
+World Health Organization, ``World Hepatitis Day: In Nigeria, an estimated 20 million people are chronically infected,'' WHO Regional Office for Africa, Feb.~2025.
+
+\bibitem{thambawita2021}
+V. Thambawita \textit{et al.}, ``DeepFake electrocardiograms: The key for open science for artificial intelligence in medicine,'' \textit{medRxiv}, Apr.~2021.
+
+\bibitem{bhanot2021}
+K. Bhanot, M. Qi, J. S. Erickson, I. Guyon, and K. P. Bennett, ``The problem of fairness in synthetic healthcare data,'' \textit{Entropy}, vol.~23, no.~9, p.~1165, Sep.~2021.
+
+\bibitem{tucker2020}
+A. Tucker, Z. Wang, Y. Rotalinti, and P. Myles, ``Generating high-fidelity synthetic patient data for assessing machine learning healthcare software,'' \textit{NPJ Digit. Med.}, vol.~3, no.~1, Nov.~2020.
+
+\bibitem{alloza2023}
+C. Alloza \textit{et al.}, ``A case for synthetic data in regulatory decision-making in Europe,'' \textit{Clin. Pharmacol. Ther.}, vol.~114, no.~4, pp.~795--801, Jul.~2023.
+
+\bibitem{bing2022}
+S. Bing, A. Dittadi, S. Bauer, and P. Schwab, ``Conditional generation of medical time series for extrapolation to underrepresented populations,'' \textit{arXiv}, Jan.~2022.
+
+\bibitem{suh2021}
+S. Suh \textit{et al.}, ``Supervised segmentation with domain adaptation for small sampled orbital CT images,'' \textit{arXiv}, Jul.~2021.
+
+\bibitem{nikolentzos2023}
+G. Nikolentzos, M. Vazirgiannis, C. Xypolopoulos, M. Lingman, and E. G. Brandt, ``Synthetic electronic health records generated with variational graph autoencoders,'' \textit{NPJ Digit. Med.}, vol.~6, no.~1, Apr.~2023.
+
+\bibitem{bhomia2019}
+Y. Bhomia, S. K. Mishra, and P. Tiwari, ``Innovations in generative adversarial networks (GANs) for synthetic data generation in medical imaging: A review,'' \textit{Pharma Innov.}, vol.~8, no.~4S, pp.~22--25, 2019.
+
+\bibitem{tapper2019}
+E. B. Tapper, J. B. Henderson, N. D. Parikh, G. N. Ioannou, and A. S. Lok, ``Incidence of and risk factors for hepatic encephalopathy in a population-based cohort of Americans with cirrhosis,'' \textit{Hepatol. Commun.}, vol.~3, no.~11, pp.~1510--1519, Sep.~2019.
+
+\bibitem{emam2021}
+K. E. Emam \textit{et al.}, ``Evaluating the utility of synthetic COVID-19 case data,'' \textit{JAMIA Open}, vol.~4, no.~1, Jan.~2021.
+
+\bibitem{decharatanachart2021}
+P. Decharatanachart, R. Chaiteerakij, T. Tiyarattanachai, and S. Treeprasertsuk, ``Application of artificial intelligence in chronic liver diseases: A systematic review and meta-analysis,'' \textit{BMC Gastroenterol.}, vol.~21, no.~1, Jan.~2021.
+
+\bibitem{popa2023}
+S. L. Popa \textit{et al.}, ``Diagnosis of liver fibrosis using artificial intelligence: A systematic review,'' \textit{Medicina}, vol.~59, no.~5, p.~992, May~2023.
+
+\bibitem{digiammarco2024}
+M. Di Giammarco \textit{et al.}, ``Evaluating deep learning resilience in retinal fundus classification with generative adversarial networks generated images,'' \textit{Electronics}, vol.~13, no.~13, p.~2631, Jul.~2024.
+
+\bibitem{choi2017}
+E. Choi, S. Biswal, B. Malin, J. Duke, W. F. Stewart, and J. Sun, ``Generating multi-label discrete patient records using generative adversarial networks,'' \textit{arXiv}, Mar.~2017.
+
+\bibitem{beaulieu2019}
+B. Beaulieu-Jones \textit{et al.}, ``Trends and focus of machine learning applications for health research,'' \textit{JAMA Netw. Open}, vol.~2, no.~10, p.~e1914051, Oct.~2019.
+
+\bibitem{sexton2024}
+D. J. Sexton and C. Judge, ``Assessments of generative AI as clinical decision support ought to be incorporated into randomised controlled trials of electronic alerts for acute kidney injury,'' \textit{Mayo Clin. Proc. Digit. Health}, vol.~2, no.~4, pp.~606--610, Oct.~2024.
+
+\bibitem{liang2023}
+C. Liang \textit{et al.}, ``Predicting Wilson's disease progression using machine learning with real-world electronic health records,'' \textit{medRxiv}, Jul.~2023.
+
+\bibitem{sharma2024}
+D. Sharma, W. Lou, and W. Xu, ``PhylaGAN: Data augmentation through conditional GANs and autoencoders for improving disease prediction accuracy using microbiome data,'' \textit{Bioinformatics}, vol.~40, no.~4, p.~btae161, Apr.~2024.
+
+\bibitem{zhou2023}
+Z. Zhou \textit{et al.}, ``A decision tree model to predict liver cirrhosis in hepatocellular carcinoma patients: A retrospective study,'' \textit{PeerJ}, vol.~11, p.~e15950, Aug.~2023.
+
+\bibitem{kucukakcali2023}
+Z. K\"{u}\c{c}\"{u}kak\c{c}al{\i}, ``Effect of underlying chronic liver disease on lysosomal acid lipase activity: Case-control study,'' \textit{J. Inonu Liver Transpl. Inst.}, pp.~35--40, 2023.
+
+\bibitem{yang2018}
+J. Yang, Y. Zhang, L. Luo, R. Meng, and C. Yu, ``Global mortality burden of cirrhosis and liver cancer attributable to injection drug use, 1990--2016,'' \textit{Int. J. Environ. Res. Public Health}, vol.~15, no.~1, p.~170, Jan.~2018.
+
+\bibitem{nazir2023}
+N. Nazir, M. Shaukat, R. Luo, and S. Abbas, ``Novel breath biomarkers identification for early detection of hepatocellular carcinoma and cirrhosis,'' \textit{PLoS One}, vol.~18, no.~11, p.~e0287465, Nov.~2023.
+
+\bibitem{liu2023}
+X. Liu, D. Liu, C. Tan, and W. Feng, ``Gut microbiome-based machine learning for diagnostic prediction of liver fibrosis and cirrhosis,'' \textit{BMC Med. Inform. Decis. Mak.}, vol.~23, no.~1, Dec.~2023.
+
+\bibitem{listopad2022}
+S. Listopad \textit{et al.}, ``Differentiating between liver diseases by applying multiclass machine learning approaches to transcriptomics,'' \textit{JHEP Rep.}, vol.~4, no.~10, p.~100560, Oct.~2022.
+
+\bibitem{obeid2023}
+J. Obeid, A. Khalifa, B. Xavier, H. Bou-Daher, and D. Rockey, ``An AI approach for identifying patients with cirrhosis,'' \textit{J. Clin. Gastroenterol.}, vol.~57, no.~1, pp.~82--88, Jan.~2023.
+
+\bibitem{che2017}
+Z. Che, Y. Cheng, S. Zhai, Z. Sun, and Y. Liu, ``Boosting deep learning risk prediction with generative adversarial networks for electronic health records,'' in \textit{Proc. IEEE Int. Conf. Data Min.}, 2017, pp.~787--792.
+
+\bibitem{arora2022}
+A. Arora and A. Arora, ``Generative adversarial networks and synthetic patient data: Current challenges and future perspectives,'' \textit{Future Healthc. J.}, vol.~9, no.~2, pp.~190--193, 2022.
+
+\bibitem{meidan2018}
+Y. Meidan \textit{et al.}, ``N-BaIoT: Network-based detection of IoT botnet attacks using deep autoencoders,'' \textit{IEEE Pervasive Comput.}, vol.~17, no.~3, pp.~12--22, Jul.--Sep.~2018.
+
+\bibitem{jiang2023}
+X. Jiang, J. Zheng, X. Zhuang, and Z. Ge, ``Ensemble data augmentation for imbalanced fault diagnosis,'' \textit{IEEE Trans. Instrum. Meas.}, vol.~72, p.~3528312, 2023.
+
+\bibitem{pandey2025}
+C. Pandey, V. Tiwari, S. A. J. Francis, V. Pal, and D. S. Roy, ``MF-CGAN: Multifeature conditional GAN for synthetic data generation in Internet of Medical Things,'' \textit{IEEE Internet Things J.}, vol.~12, no.~10, pp.~13469--13485, May~2025.
+
+\end{thebibliography}
+
+\end{document}
