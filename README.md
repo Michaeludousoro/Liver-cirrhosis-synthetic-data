@@ -1,7 +1,7 @@
 # Beyond Distributional Similarity: Evaluating Predictive Utility of Synthetic Liver Cirrhosis Data
 
 **Authors:** Michael Udousoro et al.
-**Dataset:** Mayo Clinic Primary Biliary Cirrhosis (PBC) Trial — `cirrhosis.csv`
+**Dataset:** Mayo Clinic Primary Biliary Cirrhosis (PBC) Trial — [`cirrhosis.csv`](data/raw/cirrhosis.csv)
 **Status:** Research pipeline — article in preparation
 
 ---
@@ -103,7 +103,7 @@ scientifically questionable.
 
 ## Notebooks — Run in Order
 
-### `00_exploratory_data_analysis.ipynb`
+### [`00_exploratory_data_analysis.ipynb`](00_exploratory_data_analysis.ipynb)
 
 Full data exploration of the 276 complete cases:
 
@@ -120,7 +120,7 @@ Full data exploration of the 276 complete cases:
 - **3D KDE Density Surfaces** — Bilirubin × Prothrombin probability surfaces by outcome
 - **3D Bubble Plot** — 4-dimensional view with N_Days encoded as bubble size
 
-### `01_complete_case_data_preparation.ipynb`
+### [`01_complete_case_data_preparation.ipynb`](01_complete_case_data_preparation.ipynb)
 
 - Loads raw CSV and drops patient ID
 - Applies complete-case filter (276 rows retained)
@@ -129,7 +129,7 @@ Full data exploration of the 276 complete cases:
 - Performs stratified 70/30 split (random seed 42)
 - Saves `train_real.csv`, `test_real.csv`, `scaler.pkl`
 
-### `02_synthetic_generation_iqr_filtering_and_consensus.ipynb`
+### [`02_synthetic_generation_iqr_filtering_and_consensus.ipynb`](02_synthetic_generation_iqr_filtering_and_consensus.ipynb)
 
 - Trains Vanilla GAN, CTGAN, and TVAE on scaled training data
 - Generates 500 synthetic records per method
@@ -140,7 +140,7 @@ Full data exploration of the 276 complete cases:
 - **t-SNE visualisation** — 2D projection of real vs synthetic in 18-dimensional feature space
 - **Privacy disclosure risk analysis** — nearest-neighbour distance approach
 
-### `03_predictive_modeling_and_statistical_evaluation.ipynb`
+### [`03_predictive_modeling_and_statistical_evaluation.ipynb`](03_predictive_modeling_and_statistical_evaluation.ipynb)
 
 - Trains Random Forest, Gradient Boosting, Logistic Regression under 3 scenarios
 - **Scenario A** — 193 real patients only (baseline)
@@ -167,17 +167,44 @@ cd liver-cirrhosis-synthetic-data
 
 ### 2. Create a virtual environment and install dependencies
 
+**macOS / Linux**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Register the kernel with Jupyter
+**Windows (Command Prompt)**
+```cmd
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
 
+**Windows (PowerShell)**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+> **Windows PowerShell note:** If you see an error about running scripts being disabled,
+> run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` once and
+> then retry the activate command.
+
+### 3. Register the kernel with Jupyter
+> Skip this step if you are using VS Code — it detects the virtual environment automatically.
+
+
+**macOS / Linux**
 ```bash
 python3 -m ipykernel install --user --name=liver_cirrhosis_article \
         --display-name "Python (liver cirrhosis article)"
+```
+
+**Windows**
+```cmd
+python -m ipykernel install --user --name=liver_cirrhosis_article --display-name "Python (liver cirrhosis article)"
 ```
 
 ### 4. Run notebooks in order
@@ -200,51 +227,51 @@ Notebooks must be run in order — each saves outputs that the next one loads:
 
 All outputs are regenerated fresh each time the notebooks are run.
 
-### Figures (`output/figures/`)
+### Figures ([`output/figures/`](output/figures/))
 
 | File | Description |
 |---|---|
-| `eda_*.png` | 12 exploratory analysis figures from Notebook 00 |
-| `3d_clinical_biomarker_space.png` | 3D scatter — Bilirubin × Albumin × Prothrombin, 4 angles |
-| `3d_pca_projection.png` | 3D PCA projection with feature loading arrows |
-| `3d_kde_surfaces.png` | 3D density surfaces by outcome |
-| `3d_bubble_biomarkers.png` | 3D bubble plot with N_Days as 4th dimension |
-| `fig0_training_losses.png` | Generator and discriminator loss curves |
-| `fig1_fid_comparison.png` | FID score bar chart |
-| `fig2_iqr_filtering.png` | IQR filtering effect on Bilirubin |
-| `fig3_distribution_comparison.png` | Feature distributions — real vs all synthetic |
-| `fig4_correlation_heatmap.png` | Correlation structure comparison |
-| `fig5_consensus_distribution.png` | Consensus source distribution |
-| `fig6_performance_heatmap.png` | F1 score heatmap across scenarios |
-| `fig7_model_comparison.png` | Grouped bar chart of model performance |
-| `fig8_all_metrics.png` | Line plot — all metrics across scenarios |
-| `fig9_pipeline_flowchart.png` | End-to-end pipeline schematic |
-| `tsne_real_vs_synthetic.png` | t-SNE — real vs each synthetic method |
-| `privacy_risk_analysis.png` | Nearest-neighbour privacy risk |
-| `roc_curves.png` | ROC curves — all scenarios and classifiers |
-| `pr_curves.png` | Precision-Recall curves |
-| `feature_importance.png` | RF and GB feature importances (Scenario A) |
-| `feature_importance_by_scenario.png` | RF importances across all scenarios |
-| `all_metrics_detailed.png` | All five metrics — annotated bar chart |
-| `auc_detailed_comparison.png` | AUC with reference lines |
+| [`eda_*.png`](output/figures/) | 12 exploratory analysis figures from Notebook 00 |
+| [`3d_clinical_biomarker_space.png`](output/figures/3d_clinical_biomarker_space.png) | 3D scatter — Bilirubin × Albumin × Prothrombin, 4 angles |
+| [`3d_pca_projection.png`](output/figures/3d_pca_projection.png) | 3D PCA projection with feature loading arrows |
+| [`3d_kde_surfaces.png`](output/figures/3d_kde_surfaces.png) | 3D density surfaces by outcome |
+| [`3d_bubble_biomarkers.png`](output/figures/3d_bubble_biomarkers.png) | 3D bubble plot with N_Days as 4th dimension |
+| [`fig0_training_losses.png`](output/figures/fig0_training_losses.png) | Generator and discriminator loss curves |
+| [`fig1_fid_comparison.png`](output/figures/fig1_fid_comparison.png) | FID score bar chart |
+| [`fig2_iqr_filtering.png`](output/figures/fig2_iqr_filtering.png) | IQR filtering effect on Bilirubin |
+| [`fig3_distribution_comparison.png`](output/figures/fig3_distribution_comparison.png) | Feature distributions — real vs all synthetic |
+| [`fig4_correlation_heatmap.png`](output/figures/fig4_correlation_heatmap.png) | Correlation structure comparison |
+| [`fig5_consensus_distribution.png`](output/figures/fig5_consensus_distribution.png) | Consensus source distribution |
+| [`fig6_performance_heatmap.png`](output/figures/fig6_performance_heatmap.png) | F1 score heatmap across scenarios |
+| [`fig7_model_comparison.png`](output/figures/fig7_model_comparison.png) | Grouped bar chart of model performance |
+| [`fig8_all_metrics.png`](output/figures/fig8_all_metrics.png) | Line plot — all metrics across scenarios |
+| [`fig9_pipeline_flowchart.png`](output/figures/fig9_pipeline_flowchart.png) | End-to-end pipeline schematic |
+| [`tsne_real_vs_synthetic.png`](output/figures/tsne_real_vs_synthetic.png) | t-SNE — real vs each synthetic method |
+| [`privacy_risk_analysis.png`](output/figures/privacy_risk_analysis.png) | Nearest-neighbour privacy risk |
+| [`roc_curves.png`](output/figures/roc_curves.png) | ROC curves — all scenarios and classifiers |
+| [`pr_curves.png`](output/figures/pr_curves.png) | Precision-Recall curves |
+| [`feature_importance.png`](output/figures/feature_importance.png) | RF and GB feature importances (Scenario A) |
+| [`feature_importance_by_scenario.png`](output/figures/feature_importance_by_scenario.png) | RF importances across all scenarios |
+| [`all_metrics_detailed.png`](output/figures/all_metrics_detailed.png) | All five metrics — annotated bar chart |
+| [`auc_detailed_comparison.png`](output/figures/auc_detailed_comparison.png) | AUC with reference lines |
 
-### Results (`output/results/`)
+### Results ([`output/results/`](output/results/))
 
 | File | Description |
 |---|---|
-| `model_performance.csv` | Accuracy, F1, Precision, Recall, AUC per scenario and classifier |
-| `smote_results.csv` | Scenario D (SMOTE) results |
-| `cv_results.csv` | 5-fold CV AUC mean and std |
-| `bootstrap_ci.csv` | 95% bootstrap confidence intervals for AUC |
-| `mcnemar_tests.csv` | McNemar p-values comparing augmented vs baseline |
-| `fid_scores.csv` | Tabular FID scores per method |
-| `stats_shapiro_wilk.csv` | Normality test on real data features |
-| `stats_ks_tests.csv` | KS test — real vs synthetic distributions |
-| `stats_js_divergence.csv` | Jensen-Shannon divergence |
-| `stats_cohens_d.csv` | Cohen's d effect sizes |
-| `stats_chi_square.csv` | Chi-square tests for categorical features |
-| `privacy_risk_summary.csv` | Near-duplicate rates per synthetic method |
-| `summary_report.txt` | Plain-text summary of all key results |
+| [`model_performance.csv`](output/results/model_performance.csv) | Accuracy, F1, Precision, Recall, AUC per scenario and classifier |
+| [`smote_results.csv`](output/results/smote_results.csv) | Scenario D (SMOTE) results |
+| [`cv_results.csv`](output/results/cv_results.csv) | 5-fold CV AUC mean and std |
+| [`bootstrap_ci.csv`](output/results/bootstrap_ci.csv) | 95% bootstrap confidence intervals for AUC |
+| [`mcnemar_tests.csv`](output/results/mcnemar_tests.csv) | McNemar p-values comparing augmented vs baseline |
+| [`fid_scores.csv`](output/results/fid_scores.csv) | Tabular FID scores per method |
+| [`stats_shapiro_wilk.csv`](output/results/stats_shapiro_wilk.csv) | Normality test on real data features |
+| [`stats_ks_tests.csv`](output/results/stats_ks_tests.csv) | KS test — real vs synthetic distributions |
+| [`stats_js_divergence.csv`](output/results/stats_js_divergence.csv) | Jensen-Shannon divergence |
+| [`stats_cohens_d.csv`](output/results/stats_cohens_d.csv) | Cohen's d effect sizes |
+| [`stats_chi_square.csv`](output/results/stats_chi_square.csv) | Chi-square tests for categorical features |
+| [`privacy_risk_summary.csv`](output/results/privacy_risk_summary.csv) | Near-duplicate rates per synthetic method |
+| [`summary_report.txt`](output/results/summary_report.txt) | Plain-text summary of all key results |
 
 ---
 
@@ -279,7 +306,12 @@ identical numerical results.
 
 ---
 
-## Key Results (preliminary)
+## Key Results
+
+The table below shows headline performance numbers for the best-performing classifier
+(Gradient Boosting) across all four training scenarios. Full results including 95%
+bootstrap confidence intervals, 5-fold cross-validation AUC, and McNemar test p-values
+are in [`output/results/summary_report.txt`](output/results/summary_report.txt).
 
 | Scenario | Classifier | Accuracy | F1 | AUC |
 |---|---|---|---|---|
@@ -287,8 +319,6 @@ identical numerical results.
 | B: Real + CTGAN | Gradient Boosting | 0.7470 | 0.7497 | 0.8552 |
 | C: Real + Consensus | Gradient Boosting | 0.7831 | 0.7848 | 0.8836 |
 | D: Real + SMOTE | Gradient Boosting | 0.8072 | 0.8087 | 0.8661 |
-
-Full results with confidence intervals are in `output/results/`.
 
 ---
 
@@ -301,5 +331,36 @@ Full results with confidence intervals are in `output/results/`.
 
 ## License
 
-This repository is for academic research purposes. The Mayo Clinic PBC dataset is
-publicly available via the UCI Machine Learning Repository under standard open access terms.
+The code in this repository is released under the [MIT License](LICENSE).
+
+The Mayo Clinic PBC dataset ([`data/raw/cirrhosis.csv`](data/raw/cirrhosis.csv)) is sourced
+from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/878/cirrhosis+patient+survival-prediction+dataset)
+and remains subject to UCI's open access terms independently of this license.
+
+---
+
+### MIT License
+
+```
+MIT License
+
+Copyright (c) 2025 Michael Udousoro
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
