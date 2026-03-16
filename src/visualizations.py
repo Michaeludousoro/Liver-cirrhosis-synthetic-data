@@ -467,11 +467,14 @@ def plot_model_comparison(results_df, metrics=None):
         ax.set_ylabel(metric)
         ax.set_title(metric)
         ax.set_ylim(0, min(1.15, results_df[metric].max() * 1.2))
-        ax.legend(fontsize=7, loc="lower right")
 
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center",
+               bbox_to_anchor=(0.5, -0.08), ncol=len(classifiers), fontsize=8)
     fig.suptitle("Figure 7: Classifier Performance Across Training Scenarios",
                  fontsize=13)
     fig.tight_layout()
+    fig.subplots_adjust(bottom=0.18)
     _save_figure(fig, "fig7_model_comparison.png")
 
 
