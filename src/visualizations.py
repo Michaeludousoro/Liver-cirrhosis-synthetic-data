@@ -514,18 +514,18 @@ def plot_all_metrics(results_df):
                 linewidth=1.8, markersize=7
             )
         ax.set_xticks(range(len(scenarios)))
-        ax.set_xticklabels(["A", "B", "C"])
+        ax.set_xticklabels([s.split(":")[0].strip() for s in scenarios])
         ax.set_xlabel("Training scenario")
         ax.set_ylabel(metric)
         ax.set_title(metric)
         ax.set_ylim(0, 1.1)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="center right",
-               bbox_to_anchor=(1.0, 0.5), fontsize=8)
+    fig.legend(handles, labels, loc="lower center",
+               bbox_to_anchor=(0.5, -0.12), ncol=len(classifiers), fontsize=8)
     fig.suptitle(
         "Figure 8: All Metrics Across Scenarios  "
-        "(A = Baseline,  B = Real plus CTGAN,  C = Real plus Consensus)",
+        "(A = Baseline,  B = Real plus CTGAN,  C = Real plus Consensus,  D = Synthetic only)",
         fontsize=12
     )
     fig.tight_layout()
