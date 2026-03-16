@@ -23,7 +23,7 @@ Why complete-case analysis?
     entering our synthetic generation or model evaluation.
 
 Target variable
-    Status is encoded as binary: patients who died (D) receive the label 1
+    Status is encoded as binary: patients who were deceased (D) receive the label 1
     and patients who were censored or received a liver transplant (C or CL)
     receive the label 0.
 
@@ -152,7 +152,7 @@ def split_data(df, test_size=0.30, random_state=42):
     """
     Divide the complete dataset into a training set and a held-out test set.
 
-    We use stratified splitting so that the proportion of patients who died
+    We use stratified splitting so that the proportion of patients who were deceased
     is the same in both partitions. The test set is treated as completely
     off-limits during all synthetic generation and model training steps.
     It is only used at the very end to evaluate prediction performance.

@@ -8,3 +8,6 @@ B: Real data plus filtered CTGAN,Logistic Regression,403,0.759,0.7616,0.7782,0.7
 C: Real data plus consensus synthetic,Random Forest,975,0.7831,0.7841,0.786,0.7831,0.8539
 C: Real data plus consensus synthetic,Gradient Boosting,975,0.7349,0.7377,0.7617,0.7349,0.8321
 C: Real data plus consensus synthetic,Logistic Regression,975,0.7711,0.7731,0.7807,0.7711,0.8552
+D: Synthetic data only (CTGAN filtered),Random Forest,210,0.747,0.7494,0.7782,0.747,0.8191
+D: Synthetic data only (CTGAN filtered),Gradient Boosting,210,0.6988,0.6988,0.76,0.6988,0.7933
+D: Synthetic data only (CTGAN filtered),Logistic Regression,210,0.6867,0.6859,0.7532,0.6867,0.8206

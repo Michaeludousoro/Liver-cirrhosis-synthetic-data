@@ -151,7 +151,7 @@ def main(args):
     full_df = load_complete_data(RAW_CSV)
     print(f"  Patients available after complete-case filter: {len(full_df)}")
     print(f"  Class distribution in full dataset: {full_df[TARGET_COL].value_counts().to_dict()}")
-    print(f"  Label meaning: 0 = survived or transplant, 1 = died")
+    print(f"  Label meaning: 0 = survived or transplant, 1 = deceased")
 
     train_df, test_df = split_data(full_df, test_size=0.30, random_state=42)
     print(f"  Training set: {len(train_df)} patients")
@@ -398,7 +398,7 @@ def write_summary_report(full_df, train_df, test_df, raw_synthetics,
         f"  Training set size               : {len(train_df)}",
         f"  Test set size (held out)        : {len(test_df)}",
         f"  Number of features              : {len(full_df.columns) - 1}",
-        f"  Target variable                 : Status (0 = alive, 1 = died)",
+        f"  Target variable                 : Status (0 = alive, 1 = deceased)",
         f"  Training set class balance      : {train_df[TARGET_COL].value_counts().to_dict()}",
         "",
         "SYNTHETIC GENERATION",

@@ -33,6 +33,13 @@ Training scenarios
         records. The consensus set is expected to be the highest quality subset
         because it was endorsed by all three generative models.
 
+    Scenario D: Synthetic data only (CTGAN filtered)
+        The classifier is trained exclusively on IQR-filtered CTGAN synthetic
+        records with no real training patients included. This scenario acts as
+        the synthetic-only baseline and answers the question: how well does a
+        model generalise to real patients when it has never seen any real
+        training data? It is the direct counterpart to Scenario A.
+
 Test set rule
     The test set is always and only composed of real patients. It is never
     contaminated with synthetic data. This is essential for a fair comparison:
@@ -53,8 +60,8 @@ Classifiers evaluated
 Performance metrics
     Accuracy: proportion of test patients correctly classified.
     F1 Score: harmonic mean of precision and recall, weighted by class support.
-    Precision: of the patients predicted to have died, how many actually did.
-    Recall: of the patients who actually died, how many were correctly predicted.
+    Precision: of the patients predicted to be deceased, how many actually were.
+    Recall: of the patients who were actually deceased, how many were correctly predicted.
     AUC: area under the ROC curve, measuring discrimination across all thresholds.
 """
 
@@ -163,9 +170,10 @@ def run_all_scenarios(train_real, test_real, filtered_ctgan, consensus_df):
         return combined.dropna(subset=feat_cols + [TARGET_COL])
 
     scenarios = {
-        "A: Baseline (real data only)":       train_real,
-        "B: Real data plus filtered CTGAN":   combine_and_clean(train_real, filtered_ctgan),
-        "C: Real data plus consensus synthetic": combine_and_clean(train_real, consensus_df),
+        "A: Baseline (real data only)":          train_real,
+        "B: Real data plus filtered CTGAN":      combine_and_clean(train_real, filtered_ctgan),
+        "C: Real data plus consensus synthetic":  combine_and_clean(train_real, consensus_df),
+        "D: Synthetic data only (CTGAN filtered)": filtered_ctgan,
     }
 
     all_records = []

@@ -26,7 +26,7 @@ Vanilla GAN (Generative Adversarial Network)
 
 CTGAN (Conditional Tabular GAN)
     A conditional extension of the GAN where the Generator receives the
-    patient outcome label (survived or died) as an additional input. This
+    patient outcome label (survived or deceased) as an additional input. This
     encourages the Generator to create realistic records for each class
     separately and helps maintain the correct class distribution in the
     synthetic output. Training uses balanced mini-batches so neither outcome
@@ -252,7 +252,7 @@ class CTGAN:
     Conditional Tabular Generative Adversarial Network.
 
     This model extends the Vanilla GAN by conditioning both the Generator and
-    the Discriminator on the patient outcome label (alive or died). The Generator
+    the Discriminator on the patient outcome label (alive or deceased). The Generator
     receives both the random noise vector and a one-hot encoded class label as
     inputs, so it learns to generate records that are realistic for the specified
     outcome class. The Discriminator also receives the label so it judges whether
@@ -271,7 +271,7 @@ class CTGAN:
     epochs         : training epochs
     batch_size     : samples per gradient step
     lr             : learning rate
-    n_classes      : number of outcome classes (2 in our case: died and survived)
+    n_classes      : number of outcome classes (2 in our case: deceased and survived)
     target_col_idx : position of the Status column in the feature array
     print_every    : print progress every this many epochs
     """
