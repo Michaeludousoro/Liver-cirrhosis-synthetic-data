@@ -24,9 +24,23 @@
 
 \title{Evaluating Predictive Utility of Synthetic Liver Cirrhosis Data in IoMT: A Comparative Study of GAN, CTGAN, and TVAE with Consensus-Based Quality Filtering}
 
-\author{Michael~Udousoro,
-        Francis~Anyaka,
-        and~Mfon~Ekpo,~\IEEEmembership{Senior~Members,~IEEE}
+\author{\IEEEauthorblockN{Michael~Udousoro}
+\IEEEauthorblockA{\textit{Department of Computer Science}\\
+\textit{[Your University Name]}\\
+[City, Country]\\
+[your.email@university.ac]}
+\and
+\IEEEauthorblockN{Francis~Anyaka}
+\IEEEauthorblockA{\textit{Department of [Department]}\\
+\textit{[University Name]}\\
+[City, Country]\\
+[email@university.ac]}
+\and
+\IEEEauthorblockN{Mfon~Ekpo,~\IEEEmembership{Senior~Member,~IEEE}}
+\IEEEauthorblockA{\textit{Department of [Department]}\\
+\textit{[University Name]}\\
+[City, Country]\\
+[email@university.ac]}
 \thanks{Manuscript received March 4, 2026.}}
 
 \maketitle
@@ -35,7 +49,7 @@
 % Abstract
 % ---------------------------------------------------------------
 \begin{abstract}
-Synthetic data generation has become an increasingly important strategy for expanding rare clinical datasets in Internet of Medical Things (IoMT) applications, where patient privacy regulations and disease rarity jointly limit how much real data is available for training predictive models. A persistent limitation of the field, however, is that most studies evaluate synthetic data by measuring how closely generated samples resemble real ones statistically, without asking whether adding those samples to a training set actually improves predictions made on real patients. This paper investigates that question directly using the Mayo Clinic Primary Biliary Cirrhosis (PBC) dataset, in which only 276 complete patient records remain after removing cases with missing values from the original 418-patient trial cohort. Three generative architectures are trained from scratch without any third-party synthetic data library: a Vanilla GAN, a Conditional Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE). Before any augmented training takes place, generated records are passed through an IQR-based physiological plausibility filter that removes clinically implausible biomarker values, followed by a multi-method consensus voting procedure that retains only records independently corroborated by all three generative models. Distributional fidelity is assessed through tabular Fr\'{e}chet Inception Distance, Kolmogorov-Smirnov tests, and Jensen-Shannon divergence, while privacy risk is measured through nearest-neighbour distance analysis. Predictive utility is then evaluated by training Random Forest, Gradient Boosting, and Logistic Regression classifiers under four augmentation scenarios and testing on a strictly held-out set of 83 real patients, supplemented by 5-fold cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test. Among individual models, CTGAN achieves the best distributional fidelity with an FID score of 0.075 and a near-duplicate rate of 9.0 percent. No augmentation scenario produces a statistically significant improvement in held-out test accuracy, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation does, however, reduce Random Forest cross-validation AUC variance by a factor of four, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-model agreement region meaningfully stabilise classifiers across different training subsets. For IoMT clinical decision support, where consistent performance across patient subpopulations matters as much as peak accuracy, this stability finding has direct practical relevance.
+Expanding rare clinical datasets for Internet of Medical Things (IoMT) applications is constrained by patient privacy regulations and disease rarity. Most existing work evaluates synthetic data through distributional similarity metrics, without directly testing whether augmentation improves prediction on real patients. This paper investigates that question using the Mayo Clinic Primary Biliary Cirrhosis (PBC) dataset, which yields 276 complete records after removing incomplete cases from 418 patients. Three generative architectures are trained from scratch in TensorFlow 2.15: a Vanilla GAN, a Conditional Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE). Generated records pass through an IQR-based physiological plausibility filter, followed by a multi-method consensus voting procedure that retains only records independently corroborated by all three models. Distributional fidelity is assessed through tabular Fr\'{e}chet Inception Distance, Kolmogorov-Smirnov tests, and Jensen-Shannon divergence; privacy risk through nearest-neighbour distance analysis. Predictive utility is evaluated by training Random Forest, Gradient Boosting, and Logistic Regression classifiers under four augmentation scenarios and testing on 83 held-out real patients, with 5-fold cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test. CTGAN achieves the best distributional fidelity at FID 0.075 with a near-duplicate rate of 9.0 percent. No augmentation scenario produces a statistically significant improvement in held-out accuracy, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Random Forest cross-validation AUC variance four-fold, from 0.054 to 0.014, demonstrating that cross-model agreement selects synthetic patients that stabilise classifiers across training subsets. This stability property has direct relevance for reliable clinical decision support in IoMT deployments where consistent performance matters across patient subpopulations.
 \end{abstract}
 
 \begin{IEEEkeywords}

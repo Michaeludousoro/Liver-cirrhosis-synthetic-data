@@ -549,17 +549,17 @@ def plot_pipeline_flowchart():
     # Each entry is (x_centre, y_centre, label_text, background_colour)
     steps = [
         (5.0, 9.2, "Raw Dataset\n418 patients (cirrhosis.csv)",               "#505050"),
-        (5.0, 8.0, "Complete-Case Filter\nDrop all rows with missing values",  "#303030"),
-        (5.0, 6.8, "Encode features, scale to [0,1], split 70/30",             "#1A1A1A"),
-        (2.5, 5.5, "Vanilla GAN\n500 samples",  "#0066FF"),
-        (5.0, 5.5, "CTGAN\n500 samples",         "#FF4500"),
-        (7.5, 5.5, "TVAE\n500 samples",          "#00B43C"),
-        (2.5, 4.3, "IQR Filter",                 "#0047AB"),
-        (5.0, 4.3, "IQR Filter",                 "#CC3300"),
-        (7.5, 4.3, "IQR Filter",                 "#006622"),
-        (5.0, 3.1, "Consensus Voting\ntolerance 0.5, min votes 2",              "#9900CC"),
-        (5.0, 2.0, "FID Scores and Predictive Utility Evaluation",             "#660099"),
-        (5.0, 0.9, "Statistical Tests and Publication Figures",                "#330066"),
+        (5.0, 8.0, "Complete-Case Filter\nDrop all rows with missing values",  "#505050"),
+        (5.0, 6.8, "Encode features, scale to [0,1], split 70/30",             "#505050"),
+        (2.5, 5.5, "Vanilla GAN\n500 samples",  "#505050"),
+        (5.0, 5.5, "CTGAN\n500 samples",         "#505050"),
+        (7.5, 5.5, "TVAE\n500 samples",          "#505050"),
+        (2.5, 4.3, "IQR Filter",                 "#505050"),
+        (5.0, 4.3, "IQR Filter",                 "#505050"),
+        (7.5, 4.3, "IQR Filter",                 "#505050"),
+        (5.0, 3.1, "Consensus Voting\ntolerance 0.5, min votes 2",              "#505050"),
+        (5.0, 2.0, "FID Scores and Predictive Utility Evaluation",             "#505050"),
+        (5.0, 0.9, "Statistical Tests and Publication Figures",                "#505050"),
     ]
 
     box_height = 0.55
