@@ -111,7 +111,7 @@ Within the IoMT domain, Pandey et al.\ introduced MF-CGAN, a multifeature condit
 
 The dataset used in this study is the Mayo Clinic Primary Biliary Cirrhosis trial obtained from the UCI Machine Learning Repository \cite{kanwal2020}. The raw file contains 418 patient records and 20 columns. The patient identifier column carries no clinical information and is discarded. The remaining 19 columns include 11 continuous laboratory measurements (N\_Days, Age, Bilirubin, Cholesterol, Albumin, Copper, Alk\_Phos, SGOT, Tryglicerides, Platelets, and Prothrombin); five binary clinical indicators (Sex, Drug, Ascites, Hepatomegaly, and Spiders); two ordinal variables, Edema coded as 0 for no oedema, 1 for slight or suspected oedema, and 2 for confirmed oedema, and Stage coded from 1 through 4; and the binary survival outcome Status.
 
-Patients 313 through 418 belong to an observational cohort missing between 9 and 10 laboratory measurements each. Complete-case analysis is applied: any row containing at least one missing value is removed, yielding 276 complete patient records. Categorical columns are numerically encoded: Sex is Female~=~0, Male~=~1; Drug is Placebo~=~0, D-penicillamine~=~1; Ascites, Hepatomegaly, and Spiders are No~=~0, Yes~=~1; Status is censored or transplanted~=~0, died~=~1.
+Patients 313 through 418 belong to an observational cohort missing between 9 and 10 laboratory measurements each. Complete-case analysis is applied: any row containing at least one missing value is removed, yielding 276 complete patient records. Categorical columns are numerically encoded: Sex is Female~=~0, Male~=~1; Drug is Placebo~=~0, D-penicillamine~=~1; Ascites, Hepatomegaly, and Spiders are No~=~0, Yes~=~1; Status is censored or transplanted~=~0, deceased~=~1.
 
 Fig.~\ref{fig:corrmatrix} shows the Pearson correlation matrix across all 276 complete cases. Bilirubin shows strong positive correlations with Copper ($r = 0.46$), SGOT ($r = 0.42$), Cholesterol ($r = 0.39$), and Prothrombin ($r = 0.33$), reflecting the interlinked nature of hepatic synthetic and excretory function in PBC. N\_Days is negatively correlated with Bilirubin ($r = -0.43$) and Copper ($r = -0.36$), consistent with more severe biochemical profiles being associated with shorter survival.
 
@@ -307,30 +307,57 @@ Fig.~\ref{fig:privacy} shows the privacy risk analysis. GAN and CTGAN distributi
 
 \subsection{Predictive Utility on the Held-Out Test Set}
 
-Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across Scenarios A, B, and C on the 83-patient real held-out test set. The curves for all three scenarios lie close together for every classifier, with confidence band overlap across all scenarios. For Logistic Regression, Scenario C shows a modest upward shift relative to the baseline, with AUC improving from 0.829 to 0.855.
+Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across all four scenarios on the 83-patient real held-out test set. The curves for all scenarios lie close together for every classifier, with confidence band overlap throughout. For Logistic Regression, Scenario C shows a modest upward shift relative to the baseline, with AUC improving from 0.829 to 0.855.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\columnwidth]{roc_curves.png}
-  \caption{ROC curves by classifier and training scenario on the 83-patient real held-out test set. Random Forest (left), Gradient Boosting (centre), Logistic Regression (right). All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. For Logistic Regression, Scenario C (consensus augmentation) produces the highest AUC at 0.855.}
+  \caption{ROC curves by classifier and training scenario on the 83-patient real held-out test set. Random Forest (left), Gradient Boosting (centre), Logistic Regression (right). All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest single-classifier AUC at 0.878. For Logistic Regression, Scenario C (consensus augmentation) produces the highest AUC at 0.855. Scenario D (SMOTE) achieves the highest overall accuracy at 0.807 under Gradient Boosting.}
   \label{fig:roc}
 \end{figure}
 
-Fig.~\ref{fig:auc} shows AUC scores across all three classifiers and three scenarios with reference lines at AUC~=~0.5 (random classifier) and AUC~=~0.8 (good discrimination threshold). Every scenario and classifier combination exceeds 0.8 comfortably, confirming that baseline real-data models are already clinically useful.
+Fig.~\ref{fig:prcurves} shows the Precision-Recall curves across all four scenarios and classifiers. PR curves are particularly informative for this dataset given its class imbalance (78 deceased versus 115 survivors in the training set). Gradient Boosting under Scenario D achieves the highest precision at the operating threshold.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{pr_curves.png}
+  \caption{Precision-Recall curves by classifier and training scenario on the 83-patient held-out test set. All classifiers maintain precision above 0.7 across a wide recall range. Gradient Boosting under Scenario A and Scenario D achieve the highest average precision. Logistic Regression shows the most consistent precision across all four scenarios.}
+  \label{fig:prcurves}
+\end{figure}
+
+Fig.~\ref{fig:auc} shows AUC scores across all three classifiers and all four scenarios with reference lines at AUC~=~0.5 (random classifier) and AUC~=~0.8 (good discrimination threshold). Every scenario and classifier combination exceeds 0.8 comfortably, confirming that baseline real-data models are already clinically useful and that no augmentation scenario degrades discrimination below a clinically meaningful threshold.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\columnwidth]{auc_detailed_comparison.png}
-  \caption{AUC scores across all three classifiers and training scenarios A, B, and C. The green dashed reference line marks AUC~= 0.8 and the red dashed line marks AUC~= 0.5. All combinations exceed 0.8 comfortably. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. Logistic Regression under Scenario C achieves the highest AUC gain from augmentation, reaching 0.855.}
+  \caption{AUC scores across all three classifiers and all four training scenarios (A through D). The green dashed reference line marks AUC~= 0.8 and the red dashed line marks AUC~= 0.5. All scenario-classifier combinations exceed 0.8 comfortably. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. Logistic Regression under Scenario C achieves the highest AUC gain from augmentation at 0.855.}
   \label{fig:auc}
 \end{figure}
 
-Fig.~\ref{fig:heatmap} presents the F1-score heatmap across Scenarios A, B, and C. The darkest cells appear in Scenario A for Gradient Boosting and Random Forest at 0.785. Gradient Boosting drops to 0.738 under Scenario C, making it the only classifier whose F1 falls monotonically as augmentation volume increases.
+Fig.~\ref{fig:modelcomp} presents a grouped bar comparison of accuracy, F1, and AUC across all four scenarios and classifiers, enabling direct visual comparison between augmentation strategies and the real-data baseline.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig7_model_comparison.png}
+  \caption{Grouped bar chart comparing classifier performance across all four training scenarios. Each group of bars corresponds to one evaluation metric (Accuracy, F1, AUC) for a given classifier. Gradient Boosting under Scenario D (SMOTE) achieves the highest accuracy at 0.807, while Gradient Boosting under Scenario A achieves the highest AUC at 0.878. No augmentation scenario uniformly outperforms the baseline across all classifiers and metrics.}
+  \label{fig:modelcomp}
+\end{figure}
+
+Fig.~\ref{fig:allmetrics} shows all five evaluation metrics (Accuracy, F1, Precision, Recall, AUC) plotted across the four scenarios for each classifier, providing a comprehensive view of how each metric responds to augmentation. The consistently flat or declining trajectories from Scenario A to Scenarios B and C confirm that synthetic augmentation does not systematically improve held-out predictive performance on this dataset.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{fig8_all_metrics.png}
+  \caption{Line plot of all five evaluation metrics (Accuracy, F1, Precision, Recall, AUC) across the four training scenarios for each classifier. Trajectories are generally flat or slightly declining from Scenario A (real only) through Scenarios B and C (synthetic augmentation), with Scenario D (SMOTE) producing a modest accuracy gain for Gradient Boosting. The stable AUC trajectories confirm that discrimination ability is maintained regardless of augmentation strategy.}
+  \label{fig:allmetrics}
+\end{figure}
+
+Fig.~\ref{fig:heatmap} presents the F1-score heatmap across all four scenarios. The darkest cells appear in Scenario A for Gradient Boosting and Random Forest at F1 = 0.785, and in Scenario D for Gradient Boosting at 0.809. Gradient Boosting drops to 0.738 under Scenario C, making it the only classifier whose F1 falls monotonically as synthetic augmentation volume increases.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\columnwidth]{fig6_performance_heatmap.png}
-  \caption{F1-score heatmap across Scenarios A, B, and C for all three classifiers. Darker blue indicates higher F1. Scenario A achieves the highest F1 scores for Gradient Boosting and Random Forest at 0.785. Under Scenario C, Gradient Boosting degrades to 0.738 while Logistic Regression and Random Forest hold at 0.773 and 0.784 respectively.}
+  \caption{F1-score heatmap across all four scenarios (A through D) for all three classifiers. Darker blue indicates higher F1. Gradient Boosting under Scenario D achieves the highest F1 at 0.809 and under Scenario A at 0.785. Under Scenario C, Gradient Boosting degrades to 0.738 while Logistic Regression and Random Forest hold at 0.773 and 0.784 respectively.}
   \label{fig:heatmap}
 \end{figure}
 
@@ -365,7 +392,7 @@ Table~\ref{tab:performance} reports complete test-set metrics across all four sc
 
 \subsection{Cross-Validation Stability}
 
-Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Consensus augmentation in Scenario C produces the highest mean CV AUC for both Random Forest (0.917) and Gradient Boosting (0.892). More importantly, the standard deviation of CV AUC falls sharply: Random Forest variance drops from 0.054 in Scenario A to 0.014 in Scenario C, a four-fold reduction.
+Table~\ref{tab:cv} below presents 5-fold stratified cross-validation AUC results. Consensus augmentation in Scenario C produces the highest mean CV AUC for both Random Forest (0.917) and Gradient Boosting (0.892). More importantly, the standard deviation of CV AUC falls sharply: Random Forest variance drops from 0.054 in Scenario A to 0.014 in Scenario C, a four-fold reduction.
 
 \begin{table}[H]
   \centering
@@ -385,11 +412,11 @@ Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Cons
 
 \subsection{Bootstrap Confidence Intervals and McNemar's Test}
 
-Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidence intervals for test-set AUC and McNemar's exact test results respectively. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.28, confirming that no augmentation scenario produces a statistically significant improvement over the real-data baseline on the 83-patient test set.
+Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidence intervals for test-set AUC and McNemar's exact test results respectively, covering all four augmentation scenarios. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.28, confirming that no augmentation scenario produces a statistically significant change in predictive accuracy over the real-data baseline on the 83-patient held-out test set.
 
 \begin{table}[H]
   \centering
-  \caption{95\% Bootstrap Confidence Intervals for Test-Set AUC}
+  \caption{95\% Bootstrap Confidence Intervals for Test-Set AUC (1000 resamples)}
   \label{tab:bootstrap}
   \begin{tabular}{llcc}
     \toprule
@@ -404,26 +431,34 @@ Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidenc
     C: Real + Consensus & RF & 0.8539 & [0.760, 0.933] \\
     C: Real + Consensus & GB & 0.8321 & [0.731, 0.919] \\
     C: Real + Consensus & LR & 0.8552 & [0.756, 0.935] \\
+    D: Real + SMOTE   & RF  & 0.8388 & [0.742, 0.930] \\
+    D: Real + SMOTE   & GB  & 0.8661 & [0.776, 0.946] \\
+    D: Real + SMOTE   & LR  & 0.8297 & [0.729, 0.917] \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \begin{table}[H]
   \centering
-  \caption{McNemar's Exact Test (Augmented vs.\ Baseline)}
+  \caption{McNemar's Exact Test (Augmented vs.\ Baseline, $\alpha = 0.05$)}
   \label{tab:mcnemar}
-  \begin{tabular}{llcc}
+  \begin{tabular}{llccc}
     \toprule
-    Classifier & Comparison & $p$-value & Significant \\
+    Classifier & Comparison & $n_{10}$ & $n_{01}$ & $p$-value \\
     \midrule
-    Random Forest       & A vs.\ B & 0.625 & No \\
-    Random Forest       & A vs.\ C & 1.000 & No \\
-    Gradient Boosting   & A vs.\ B & 0.688 & No \\
-    Gradient Boosting   & A vs.\ C & 0.289 & No \\
-    Logistic Regression & A vs.\ B & 1.000 & No \\
-    Logistic Regression & A vs.\ C & 1.000 & No \\
+    Random Forest       & A vs.\ B & 3 & 1 & 0.625 \\
+    Random Forest       & A vs.\ C & 2 & 2 & 1.000 \\
+    Random Forest       & A vs.\ D & 4 & 4 & 1.000 \\
+    Gradient Boosting   & A vs.\ B & 4 & 2 & 0.688 \\
+    Gradient Boosting   & A vs.\ C & 6 & 2 & 0.289 \\
+    Gradient Boosting   & A vs.\ D & 2 & 4 & 0.688 \\
+    Logistic Regression & A vs.\ B & 2 & 1 & 1.000 \\
+    Logistic Regression & A vs.\ C & 4 & 4 & 1.000 \\
+    Logistic Regression & A vs.\ D & 0 & 0 & 1.000 \\
     \bottomrule
   \end{tabular}
+  \vspace{2pt}
+  \footnotesize{$n_{10}$: baseline correct, augmented wrong; $n_{01}$: augmented correct, baseline wrong. No comparison reaches significance at $\alpha = 0.05$.}
 \end{table}
 
 \subsection{Discussion}
@@ -432,12 +467,14 @@ The results offer a nuanced picture of what synthetic augmentation can and canno
 
 The cross-validation results reveal a genuine benefit that single-split evaluation obscures. Consensus augmentation reduces Random Forest variance four-fold across folds, indicating that the additional synthetic patients stabilise the classifier across different subsets of the training data. In an IoMT deployment setting where a clinical decision support model must perform reliably across patients of different disease stages, ages, and treatment backgrounds, a model with lower cross-validation variance is more trustworthy than one that achieves peak performance on one partition by chance.
 
-Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest and Gradient Boosting trained under Scenario A. Both classifiers rank N\_Days as the most important predictor (RF: 0.133, GB: 0.240), followed by Bilirubin (RF: 0.128, GB: 0.145). Prothrombin and Alk\_Phos follow in both classifiers. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema show low importance. This ranking is clinically coherent and validates the integrity of the preprocessing and modelling pipeline.
+An additional evaluation was conducted to assess whether a classifier trained exclusively on synthetic data can generalise to real patients. Using the 210 IQR-filtered CTGAN records as the sole training set and the held-out 83 real patients as the test set, Random Forest achieves AUC~=~0.819 and accuracy~=~0.747, Logistic Regression achieves AUC~=~0.821 and accuracy~=~0.687, and Gradient Boosting achieves AUC~=~0.793 and accuracy~=~0.699. These results demonstrate that classifiers trained entirely on synthetic CTGAN data retain a meaningful portion of their discriminative ability when tested on real patients, with AUC remaining above 0.79 for all three classifiers. The accuracy drop relative to the real-data baseline (Scenario A: 0.783) is modest, amounting to roughly 8 percentage points for Gradient Boosting and only 4 percentage points for Random Forest. This finding has practical relevance for IoMT settings where real patient data cannot be shared across institutions but synthetic surrogates are available: a model trained on synthetic data at a data-generating site can transfer meaningful predictive signal to a deployment site operating on real patients.
+
+Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest and Gradient Boosting trained under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest, with N\_Days and Bilirubin leading across both methods, followed by Prothrombin and Albumin. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema carry comparatively low weight. This pattern is clinically coherent and validates the integrity of the preprocessing and modelling pipeline.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\columnwidth]{feature_importance.png}
-  \caption{Feature importance rankings from Random Forest (left, blue) and Gradient Boosting (right, orange) trained on real data only under Scenario A. Both classifiers rank N\_Days as the most important predictor (RF: 0.133, GB: 0.240), followed by Bilirubin (RF: 0.128, GB: 0.145). Binary clinical indicators such as Ascites, Drug, Spiders, and Edema show low importance, consistent with the dominant role of continuous laboratory biomarkers in PBC prognosis.}
+  \caption{Feature importance rankings from Random Forest (left, blue) and Gradient Boosting (right, orange) trained on real data only under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest. N\_Days and Bilirubin are the two leading predictors across both classifiers, followed by Prothrombin and Albumin. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema show comparatively low importance, consistent with the dominant role of laboratory measurements in PBC prognosis.}
   \label{fig:importance}
 \end{figure}
 
@@ -451,7 +488,7 @@ This study investigated whether deep generative synthetic data augmentation can 
 
 Two methodological contributions were introduced. An IQR-based physiological plausibility filter removes synthetic records with clinically implausible biomarker values before any downstream use, discarding between 54 and 58 percent of adversarially generated records. A multi-method consensus voting mechanism accepts only synthetic patients corroborated independently by all three generative architectures in standardised feature space.
 
-Three empirical findings stand out. Among individual generative models, CTGAN produces the best distributional fidelity at FID~= 0.075 and the most acceptable privacy profile at 9.0 percent near-duplicates, making it the most suitable model for privacy-constrained IoMT augmentation. On the 83-patient held-out test set, no augmentation scenario achieves a statistically significant improvement over the real-data baseline, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Random Forest cross-validation AUC variance four-fold, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-architecture agreement region stabilise classifiers in a way that random oversampling methods do not.
+Four empirical findings stand out. Among individual generative models, CTGAN produces the best distributional fidelity at FID~= 0.075 and the most acceptable privacy profile at 9.0 percent near-duplicates, making it the most suitable model for privacy-constrained IoMT augmentation. On the 83-patient held-out test set, no augmentation scenario achieves a statistically significant improvement over the real-data baseline, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Random Forest cross-validation AUC variance four-fold, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-architecture agreement region stabilise classifiers in a way that random oversampling methods do not. An additional synthetic-only evaluation shows that classifiers trained exclusively on 210 CTGAN-generated records and tested on 83 real patients achieve AUC values between 0.793 and 0.821, demonstrating that synthetic data retains transferable predictive signal even without any real patient exposure during training.
 
 Future work should examine whether this stability effect translates into improved generalisation on external validation cohorts from different clinical sites. Incorporating differentially private training objectives into the TVAE architecture would address the memorisation risk identified in the privacy analysis. Extending the framework to longitudinal IoMT data streams, where temporal dependencies introduce additional generation challenges beyond those present in single-visit tabular records, represents a further natural direction for this line of research.
 
