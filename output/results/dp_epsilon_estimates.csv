@@ -1,0 +1,8 @@
+noise_multiplier,epsilon,interpretation
+0.5,210.4354,Essentially no DP guarantee
+0.8,89.217,Very weak privacy guarantee
+1.0,61.2435,Very weak privacy guarantee
+1.2,46.0481,Very weak privacy guarantee
+1.5,33.6154,Very weak privacy guarantee
+2.0,23.9456,Very weak privacy guarantee
+3.0,14.0449,Very weak privacy guarantee
