@@ -14,6 +14,7 @@
 \usepackage{url}
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage{placeins}
 
 \graphicspath{{figures/}}
 
@@ -24,7 +25,7 @@
 
 \title{Evaluating Predictive Utility of Synthetic Liver Cirrhosis Data in IoMT: A Comparative Study of GAN, CTGAN, and TVAE with Consensus-Based Quality Filtering}
 
-\author{\IEEEauthorblockN{Michael~Udousoro,~Francis~Anyaka,~and~Mfon~Ekpo,~\IEEEmembership{Senior~Members,~IEEE}}
+\author{\IEEEauthorblockN{Michael~Udousoro,~MSc~and~Mohammad~Farhan~Khan,~\IEEEmembership{PhD, Senior Lecturer}}
 \IEEEauthorblockA{\textit{Department of Computer Science}\\
 \textit{University of Roehampton}\\
 London, United Kingdom}
@@ -36,7 +37,7 @@ London, United Kingdom}
 % Abstract
 % ---------------------------------------------------------------
 \begin{abstract}
-Expanding rare clinical datasets for Internet of Medical Things (IoMT) applications is constrained by patient privacy regulations and disease rarity. Most existing work evaluates synthetic data through distributional similarity metrics without directly testing whether augmentation improves prediction on real patients. This paper investigates that question using the Mayo Clinic Primary Biliary Cirrhosis (PBC) dataset, which yields 276 complete records after removing incomplete cases from 418 patients. Three generative architectures are trained from scratch in TensorFlow 2.15: a Vanilla GAN, a Conditional Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE). Generated records pass through an IQR-based physiological plausibility filter, followed by a multi-method consensus voting procedure that retains only records independently corroborated by all three models. Distributional fidelity is assessed through tabular Fr\'{e}chet Inception Distance (FID), Kolmogorov-Smirnov tests, Jensen-Shannon divergence, Cohen's $d$, and chi-square tests; privacy risk is quantified via nearest-neighbour distance analysis. Predictive utility is evaluated by training Random Forest, Gradient Boosting, and Logistic Regression classifiers under four augmentation scenarios (real-only baseline, real + filtered CTGAN, real + consensus, and real + SMOTE) and testing exclusively on 83 held-out real patients, with 5-fold stratified cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test. CTGAN achieves the best distributional fidelity at FID 0.0751 (near-duplicate rate 9.0\%). No augmentation scenario produces a statistically significant improvement in held-out performance (all McNemar $p > 0.05$), confirming that distributional similarity does not guarantee predictive gain on real patients. However, consensus augmentation reduces Random Forest cross-validation AUC variance four-fold ($0.054 \rightarrow 0.014$), demonstrating that cross-model agreement selects synthetic records that stabilise classifiers across training subsets. This stability benefit is directly relevant for reliable clinical decision support in IoMT deployments where consistent performance across patient subpopulations is critical.
+Expanding rare clinical datasets for Internet of Medical Things (IoMT) applications is constrained by patient privacy regulations and disease rarity. Most existing work evaluates synthetic data through distributional similarity metrics without directly testing whether augmentation improves prediction on real patients. This paper investigates that question using the Mayo Clinic Primary Biliary Cirrhosis (PBC) dataset, which yields 276 complete records after removing incomplete cases from 418 patients. Three generative architectures are trained from scratch in TensorFlow 2.15: a Vanilla GAN, a Conditional Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE). Generated records pass through an IQR-based physiological plausibility filter, followed by a multi-method consensus voting procedure that retains only records independently corroborated by all three models. Distributional fidelity is assessed through tabular Fr\'{e}chet Inception Distance (FID), Kolmogorov-Smirnov tests, Jensen-Shannon divergence, Cohen's $d$, and chi-square tests; privacy risk is quantified via nearest-neighbour distance analysis. Predictive utility is evaluated by training Random Forest, Gradient Boosting, and Logistic Regression classifiers under four augmentation scenarios (real-only baseline, real + filtered CTGAN, real + consensus, and real + SMOTE) and testing exclusively on 83 held-out real patients, with 5-fold stratified cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test. CTGAN achieves the best distributional fidelity at FID 0.0751 (near-duplicate rate 9.0\%). No augmentation scenario produces a statistically significant improvement in held-out performance (all McNemar $p > 0.05$), confirming that distributional similarity does not guarantee predictive gain on real patients. However, consensus augmentation reduces Gradient Boosting cross-validation AUC variance 4.9-fold ($0.069 \rightarrow 0.014$) and Random Forest variance 3.4-fold ($0.053 \rightarrow 0.016$), demonstrating that cross-model agreement selects synthetic records that stabilise classifiers across training subsets. This stability benefit is directly relevant for reliable clinical decision support in IoMT deployments where consistent performance across patient subpopulations is critical.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -46,6 +47,7 @@ Synthetic data generation, generative adversarial networks, variational autoenco
 % ---------------------------------------------------------------
 % Section I: Introduction
 % ---------------------------------------------------------------
+\FloatBarrier
 \section{Introduction}
 
 The Internet of Medical Things has transformed how clinical biomarkers are collected, enabling continuous monitoring of liver enzymes, bilirubin concentrations, and albumin levels from wearable and implanted devices that feed directly into clinical decision support systems \cite{guo2021}, \cite{obeid2023}. As these systems grow more sophisticated, the demand for large, well-annotated patient datasets to train predictive models grows alongside them. The tension between that demand and the reality of clinical data availability is one of the defining challenges in medical machine learning. Privacy regulations, including GDPR and HIPAA, restrict what institutions can share, while rare conditions produce datasets that are inherently small. The Mayo Clinic Primary Biliary Cirrhosis trial is a concrete example: it enrolled 312 patients over more than a decade, and once records with incomplete measurements are removed, only 276 patients remain available for analysis \cite{kanwal2020}. Training robust classifiers on a dataset of that size is genuinely difficult.
@@ -61,6 +63,7 @@ The paper proceeds as follows. Section~\ref{sec:related} reviews relevant litera
 % ---------------------------------------------------------------
 % Section II: Related Work
 % ---------------------------------------------------------------
+\FloatBarrier
 \section{Related Work}
 \label{sec:related}
 
@@ -91,6 +94,7 @@ Within the IoMT domain, Pandey et al.\ introduced MF-CGAN, a multifeature condit
 % ---------------------------------------------------------------
 % Section III: Methodology
 % ---------------------------------------------------------------
+\FloatBarrier
 \section{Methodology}
 \label{sec:methodology}
 
@@ -100,7 +104,7 @@ The dataset used in this study is the Mayo Clinic Primary Biliary Cirrhosis (PBC
 
 Patients 313--418 belong to an observational cohort missing between 9 and 10 laboratory measurements each. Rather than imputing values collected under fundamentally different protocols (which would introduce systematic bias), complete-case analysis is applied: any row containing at least one missing value is removed, yielding 276 complete patient records. Categorical columns are numerically encoded: Sex (Female~=~0, Male~=~1), Drug (Placebo~=~0, D-penicillamine~=~1), Ascites/Hepatomegaly/Spiders (No~=~0, Yes~=~1), and Status (censored/transplanted~=~0, deceased~=~1). All features are then scaled to $[0, 1]$ using a MinMaxScaler fitted exclusively on the training partition to prevent data leakage.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{eda_correlation_matrix.png}
   \caption{Pearson correlation matrix across all 276 complete cases. Bilirubin shows strong positive correlations with Copper ($r = 0.46$), SGOT ($r = 0.42$), Cholesterol ($r = 0.39$), and Prothrombin ($r = 0.33$), reflecting the interlinked nature of hepatic synthetic and excretory function in PBC. N\_Days is negatively correlated with Bilirubin ($r = -0.43$) and Copper ($r = -0.36$), consistent with more severe biochemical profiles being associated with shorter survival.}
@@ -109,7 +113,7 @@ Patients 313--418 belong to an observational cohort missing between 9 and 10 lab
 
 The 276 records are divided into a training set of 193 patients and a held-out test set of 83 patients using stratified random splitting with seed 42, preserving class balance in both partitions (training: 115 survived/transplanted = 59.6\%, 78 deceased = 40.4\%). The overall pipeline is illustrated in Fig.~\ref{fig:pipeline}.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig9_pipeline_flowchart.png}
   \caption{End-to-end synthetic data pipeline. The raw 418-patient dataset passes through a complete-case filter and a preprocessing stage before the 193-patient training set feeds three parallel generative models. Each model's 500 generated records pass through an IQR plausibility filter before all three filtered pools enter the consensus voting stage.}
@@ -138,7 +142,7 @@ where $\boldsymbol{\varepsilon}$ is drawn from a standard normal. The decoder ma
 \end{equation}
 with $\beta = 1.0$, Adam optimiser at learning rate $1 \times 10^{-3}$, batch size 32, and 300 training epochs.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig0_training_losses.png}
   \caption{Training loss curves for all three generative models. Left: Vanilla GAN generator and discriminator losses over 500 epochs. Centre: CTGAN losses over 300 epochs, showing a pronounced peak near epoch 30 followed by convergence. Right: TVAE total ELBO loss over 300 epochs, falling sharply from 0.15 to approximately 0.08 by epoch 50 and then remaining stable.}
@@ -151,7 +155,7 @@ A Tukey fence filter is applied independently to each model's output. For each o
 
 Applied to 500 generated records per model, the filter retained 226 GAN records (45.2\%), 210 CTGAN records (42.0\%), and all 500 TVAE records (100.0\%).
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig2_iqr_filtering.png}
   \caption{Effect of IQR-based Tukey fence filtering on the Bilirubin distribution for all three generative models. Grey bars show real patient density. Pink bars show unfiltered synthetic distribution; coloured bars show the post-filter distribution. The GAN and CTGAN produce records extending beyond 15~mg/dL that the filter removes. The TVAE retains all generated records but produces a distribution shifted rightward relative to real patients.}
@@ -162,12 +166,12 @@ Applied to 500 generated records per model, the filter retained 226 GAN records 
 
 A consensus voting mechanism is applied that retains only records independently corroborated by all three generative models. This approach is related to the multi-source data augmentation strategy of Jiang et al.\ \cite{jiang2023}, who combine outputs from multiple independently trained GANs to reduce distribution skewness. The present work differs in that three structurally distinct architectures are used, and acceptance requires cross-architecture agreement rather than simply pooling all outputs.
 
-A StandardScaler is fitted on the union of all three filtered datasets. For each candidate record from one model, the minimum Euclidean distance to any record from each of the other two models is computed in standardised space. The candidate is accepted if both other models have a record within tolerance~$= 0.5$ standardised units. This process repeats with each filtered dataset as the candidate pool in turn, and exact duplicates are removed from the final set.
+A StandardScaler is fitted on the union of all three filtered datasets. For each candidate record from one model, the minimum Euclidean distance to any record from each of the other two models is computed in standardised space. The candidate is accepted if both other models have a record within tolerance~$= 5.0$ standardised units. This process repeats with each filtered dataset as the candidate pool in turn, and exact duplicates are removed from the final set. The threshold of 5.0 was selected on the basis of a systematic sensitivity analysis conducted across eight values from 2.5 to 6.0. At thresholds below 4.5, the accepted set contains fewer than 13\% deceased patients, introducing a severe class imbalance relative to the real training cohort (40\% deceased). At 5.0, class balance recovers to 15.3\% and the FID score reaches 0.1116, after which further increases in threshold yield only marginal FID improvements (0.1027 at 5.5, 0.0956 at 6.0) while adding records with progressively weaker cross-model agreement. The value of 5.0 therefore represents the point at which class balance becomes acceptable and the quality improvement curve begins to flatten. To address the pool-size imbalance across the three filtered datasets (GAN 226 records, CTGAN 210 records, TVAE 500 records), the TVAE pool is randomly downsampled to 210 records before voting, matching the size of the smallest adversarial pool. This equalisation reduces TVAE's contribution from 61.9\% to 37.7\% while CTGAN rises to 32.8\% and GAN rises to 29.5\%, giving the two higher-fidelity adversarial models a proportionally stronger role in the consensus. The equalised consensus of 555 records achieves FID 0.0862, compared to 0.1116 without equalisation, and reduces the near-duplicate rate from 28.4\% to 0.4\%, substantially improving the privacy safety profile of the consensus set.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig5_consensus_distribution.png}
-  \caption{Source composition of the 782 consensus records. Left: absolute record counts per generative method after consensus voting. Right: proportional contribution as a pie chart. TVAE contributes 61.9\%, GAN 17.5\%, and CTGAN 20.6\%.}
+  \caption{Source composition of the 555 equalised consensus records. Left: absolute record counts per generative method after consensus voting with TVAE pool downsampled to 210. Right: proportional contribution as a pie chart. GAN contributes 29.5\%, CTGAN 32.8\%, and TVAE 37.7\%.}
   \label{fig:consensus}
 \end{figure}
 
@@ -185,7 +189,7 @@ Predictive utility is evaluated by training Random Forest (RF), Gradient Boostin
 \begin{itemize}
   \item \textbf{Scenario A:} 193 real patients only (baseline).
   \item \textbf{Scenario B:} 193 real + 210 IQR-filtered CTGAN records (403 total). CTGAN is selected here because it achieves the lowest FID among individual methods.
-  \item \textbf{Scenario C:} 193 real + 782 consensus records (975 total).
+  \item \textbf{Scenario C:} 193 real + 555 consensus records (748 total).
   \item \textbf{Scenario D:} 193 real patients augmented with SMOTE oversampling (classical baseline).
 \end{itemize}
 All classifiers use default scikit-learn hyperparameters. Evaluation metrics are Accuracy, F1, Precision, Recall, and AUC-ROC. 5-fold stratified cross-validation, 1000-resample bootstrap confidence intervals, and McNemar's exact test complement the single-split evaluation. All random seeds are fixed at 42.
@@ -193,14 +197,15 @@ All classifiers use default scikit-learn hyperparameters. Evaluation metrics are
 % ---------------------------------------------------------------
 % Section IV: Results and Discussion
 % ---------------------------------------------------------------
+\FloatBarrier
 \section{Results and Discussion}
 \label{sec:results}
 
 \subsection{Synthetic Data Retention and IQR Filtering}
 
-Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. The GAN and CTGAN each reject more than half of their generated records; the TVAE retains all 500. The consensus procedure accepts 782 records from the union of the three filtered pools.
+Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. The GAN and CTGAN each reject more than half of their generated records; the TVAE retains all 500. The consensus procedure accepts 555 records from the equalised filtered pools (TVAE downsampled to 210).
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \caption{Synthetic Data Retention and FID Scores}
   \label{tab:retention}
@@ -211,25 +216,25 @@ Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. 
     Vanilla GAN   & 500 & 226 & 45.2\% & 0.0972 \\
     CTGAN         & 500 & 210 & 42.0\% & 0.0751 \\
     TVAE          & 500 & 500 & 100.0\% & 0.2194 \\
-    Consensus     & ---  & 782 & ---   & 0.1116 \\
+    Consensus     & ---  & 555 & ---   & 0.0862 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Distributional Fidelity}
 
-Fig.~\ref{fig:fid} shows the tabular FID scores for all four synthetic datasets. CTGAN achieves the lowest FID of 0.0751, followed by the Vanilla GAN at 0.0972. The TVAE produces an FID of 0.2194 despite retaining all generated records, confirming that smooth variational generation reduces distributional sharpness. The consensus set scores 0.1116.
+Fig.~\ref{fig:fid} shows the tabular FID scores for all four synthetic datasets. CTGAN achieves the lowest FID of 0.0751, followed by the Vanilla GAN at 0.0972. The TVAE produces an FID of 0.2194 despite retaining all generated records, confirming that smooth variational generation reduces distributional sharpness. The equalised consensus set scores 0.0862.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig1_fid_comparison.png}
-  \caption{Tabular Fr\'{e}chet Inception Distance scores for all four synthetic datasets. Lower scores indicate greater distributional alignment with real training data. CTGAN achieves the lowest FID at 0.0751. The TVAE, despite retaining all 500 generated records through the IQR filter, shows the highest FID at 0.2194, reflecting over-smoothing of clinical feature distributions. The consensus set scores 0.1116.}
+  \caption{Tabular Fr\'{e}chet Inception Distance scores for all four synthetic datasets. Lower scores indicate greater distributional alignment with real training data. CTGAN achieves the lowest FID at 0.0751. The TVAE, despite retaining all 500 generated records through the IQR filter, shows the highest FID at 0.2194, reflecting over-smoothing of clinical feature distributions. The equalised consensus set scores 0.0862, below the individual TVAE FID, confirming that pool equalisation improves distributional fidelity by reducing over-representation of variational samples.}
   \label{fig:fid}
 \end{figure}
 
 Fig.~\ref{fig:distributions} compares feature distributions for six representative clinical variables. Albumin and Prothrombin are well reproduced by GAN and CTGAN. Bilirubin is the most challenging feature: the TVAE distribution is noticeably shifted rightward relative to real patients, while GAN and CTGAN align better with the concentrated low-value peak.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig3_distribution_comparison.png}
   \caption{Feature distribution comparison between real training data and all four synthetic methods for six representative clinical variables: Bilirubin, Albumin, Prothrombin, Cholesterol, Copper, and SGOT. GAN and CTGAN reproduce Albumin and Prothrombin closely, while all methods show distributional divergence on the heavily right-skewed Bilirubin and Cholesterol features.}
@@ -238,7 +243,7 @@ Fig.~\ref{fig:distributions} compares feature distributions for six representati
 
 Fig.~\ref{fig:corrcomparison} compares the Pearson correlation structure of real patient data against the consensus synthetic dataset. The consensus set preserves the dominant pairwise associations, including the strong positive Bilirubin-Copper relationship and the negative N\_Days-Bilirubin association.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig4_correlation_heatmap.png}
   \caption{Pearson correlation structure comparison between real patient data (left) and consensus synthetic data (right). The consensus set preserves the dominant clinical associations, including the strong positive Bilirubin-Copper relationship ($r = 0.46$ in real data) and the negative N\_Days-Bilirubin association ($r = -0.43$), though weaker correlations are attenuated.}
@@ -247,7 +252,7 @@ Fig.~\ref{fig:corrcomparison} compares the Pearson correlation structure of real
 
 Fig.~\ref{fig:tsne} shows the t-SNE projection of real patients and each synthetic method into two dimensions. The GAN and CTGAN filtered sets mix reasonably with the real patient manifold. The TVAE points spread more widely, with portions falling outside the real patient contours. The consensus set fills the central high-density region, confirming that cross-model agreement selects records from the most representative zone of feature space.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{tsne_real_vs_synthetic.png}
   \caption{t-SNE two-dimensional projection of real patients and each synthetic method in the original 18-dimensional feature space. GAN and CTGAN filtered sets show reasonable overlap with the real patient manifold. TVAE points spread more widely, with portions falling outside the real patient density contours. The consensus set fills the central high-density region.}
@@ -260,14 +265,14 @@ Per-feature KS tests reveal a consistent pattern. The filtered GAN shows no sign
 
 Fig.~\ref{fig:privacy} shows the privacy risk analysis using nearest-neighbour distances in standardised feature space. GAN and CTGAN distributions are centred well above the risk threshold (5th percentile of real-to-real distances), indicating that most adversarially generated records fall at a safe distance from any real patient. The TVAE and consensus distributions have substantial mass below the threshold, reflecting the broader coverage of the variational latent space and the cross-model acceptance criterion.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{privacy_risk_analysis.png}
   \caption{Privacy disclosure risk analysis using nearest-neighbour distances in standardised feature space. Left: violin plots of distances from each synthetic record to its closest real training patient. The red dashed line marks the risk threshold at the 5th percentile of real-to-real distances. GAN and CTGAN distributions are centred above this threshold. Right: near-duplicate rates by method. GAN (5.3\%) and CTGAN (9.0\%) present low privacy risk, while TVAE (38.2\%) and consensus (28.4\%) warrant caution in privacy-sensitive IoMT deployments.}
   \label{fig:privacy}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \caption{Privacy Risk Analysis}
   \label{tab:privacy}
@@ -278,7 +283,7 @@ Fig.~\ref{fig:privacy} shows the privacy risk analysis using nearest-neighbour d
     GAN (filtered)   & 226 & 2.85 & 12  & 5.3\%  \\
     CTGAN (filtered) & 210 & 2.94 & 19  & 9.0\%  \\
     TVAE (filtered)  & 500 & 3.12 & 191 & 38.2\% \\
-    Consensus        & 782 & $\sim$2.8  & 222 & 28.4\% \\
+    Consensus        & 555 & $\sim$1.9  & 2   & 0.4\%  \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -303,9 +308,9 @@ Table~\ref{tab:performance} reports complete test-set metrics across all four sc
     B: Real + CTGAN   & Gradient Boosting  & 403 & 0.7590 & 0.7616 & 0.7782 & 0.7590 & 0.8721 \\
     B: Real + CTGAN   & Logistic Regression& 403 & 0.7590 & 0.7616 & 0.7782 & 0.7590 & 0.8455 \\
     \midrule
-    C: Real + Consensus & Random Forest    & 975 & 0.7831 & 0.7841 & 0.7860 & 0.7831 & 0.8539 \\
-    C: Real + Consensus & Gradient Boosting& 975 & 0.7349 & 0.7377 & 0.7617 & 0.7349 & 0.8321 \\
-    C: Real + Consensus & Logistic Regression & 975 & 0.7711 & 0.7731 & 0.7807 & 0.7711 & 0.8552 \\
+    C: Real + Consensus & Random Forest    & 748 & 0.7590 & 0.7609 & 0.7663 & 0.7590 & 0.8542 \\
+    C: Real + Consensus & Gradient Boosting& 748 & 0.7831 & 0.7854 & 0.8022 & 0.7831 & 0.8503 \\
+    C: Real + Consensus & Logistic Regression & 748 & 0.7831 & 0.7841 & 0.7860 & 0.7831 & 0.8491 \\
     \midrule
     D: Real + SMOTE   & Random Forest      & 230 & 0.7470 & 0.7496 & 0.7628 & 0.7470 & 0.8388 \\
     D: Real + SMOTE   & Gradient Boosting  & 230 & \textbf{0.8072} & \textbf{0.8087} & 0.8140 & 0.8072 & 0.8661 \\
@@ -316,7 +321,7 @@ Table~\ref{tab:performance} reports complete test-set metrics across all four sc
 
 Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across all four scenarios on the 83-patient real held-out test set. All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878, while Logistic Regression under Scenario C achieves the highest AUC gain from augmentation at 0.855.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{roc_curves.png}
   \caption{ROC curves by classifier and training scenario on the 83-patient real held-out test set: Random Forest (left), Gradient Boosting (centre), Logistic Regression (right). All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. Scenario D (SMOTE) achieves the highest overall accuracy at 0.807 under Gradient Boosting.}
@@ -325,7 +330,7 @@ Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across all fou
 
 Fig.~\ref{fig:prcurves} shows Precision-Recall curves across all four scenarios and classifiers. PR curves are particularly informative for this dataset given its class imbalance (78 deceased versus 115 survivors in the training set).
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{pr_curves.png}
   \caption{Precision-Recall curves by classifier and training scenario on the 83-patient held-out test set. All classifiers maintain precision above 0.7 across a wide recall range. Gradient Boosting under Scenarios A and D achieve the highest average precision.}
@@ -334,7 +339,7 @@ Fig.~\ref{fig:prcurves} shows Precision-Recall curves across all four scenarios 
 
 Fig.~\ref{fig:auc} shows AUC scores across all three classifiers and all four scenarios. Every scenario and classifier combination exceeds AUC~$= 0.8$ comfortably, confirming that baseline real-data models are already clinically useful and that no augmentation strategy degrades discrimination below a clinically meaningful threshold.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{auc_detailed_comparison.png}
   \caption{AUC scores across all three classifiers and all four training scenarios (A through D). The green dashed reference line marks AUC~$= 0.8$ and the red dashed line marks AUC~$= 0.5$. All scenario-classifier combinations exceed 0.8 comfortably. Gradient Boosting under Scenario A achieves the highest AUC at 0.878.}
@@ -343,7 +348,7 @@ Fig.~\ref{fig:auc} shows AUC scores across all three classifiers and all four sc
 
 Fig.~\ref{fig:heatmap} presents the F1-score heatmap across all four scenarios. The highest F1 scores appear in Scenario A for Gradient Boosting and Random Forest at 0.785, and in Scenario D for Gradient Boosting at 0.809. Gradient Boosting is the only classifier whose F1 falls monotonically as synthetic augmentation volume increases (Scenario A to C).
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig6_performance_heatmap.png}
   \caption{F1-score heatmap across all four scenarios (A through D) for all three classifiers. Darker blue indicates higher F1. Gradient Boosting under Scenario D achieves the highest F1 at 0.809. Under Scenario C, Gradient Boosting degrades to 0.738 while Logistic Regression and Random Forest hold at 0.773 and 0.784 respectively.}
@@ -352,14 +357,14 @@ Fig.~\ref{fig:heatmap} presents the F1-score heatmap across all four scenarios. 
 
 Fig.~\ref{fig:modelcomp} presents a grouped bar comparison of accuracy, F1, and AUC across all four scenarios and classifiers, enabling a direct visual comparison between augmentation strategies and the real-data baseline. Fig.~\ref{fig:allmetrics} extends this view to all five evaluation metrics across scenarios.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig7_model_comparison.png}
   \caption{Grouped bar chart comparing classifier performance across all four training scenarios. No augmentation scenario uniformly outperforms the baseline across all classifiers and metrics.}
   \label{fig:modelcomp}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{fig8_all_metrics.png}
   \caption{Line plot of all five evaluation metrics (Accuracy, F1, Precision, Recall, AUC) across the four training scenarios for each classifier. Trajectories are generally flat or slightly declining from Scenario A through Scenarios B and C, with Scenario D producing a modest accuracy gain for Gradient Boosting.}
@@ -368,9 +373,9 @@ Fig.~\ref{fig:modelcomp} presents a grouped bar comparison of accuracy, F1, and 
 
 \subsection{Cross-Validation Stability}
 
-Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Consensus augmentation in Scenario C produces the highest mean CV AUC for both Random Forest (0.917) and Gradient Boosting (0.892). The standard deviation of CV AUC falls sharply: Random Forest variance drops from 0.054 in Scenario A to 0.014 in Scenario C, a four-fold reduction.
+Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Consensus augmentation in Scenario C produces the highest mean CV AUC for both Random Forest (0.898) and Gradient Boosting (0.881). The standard deviation of CV AUC falls sharply: Gradient Boosting variance drops from 0.069 in Scenario A to 0.014 in Scenario C, a 4.9-fold reduction. Random Forest variance drops from 0.053 to 0.016, a 3.4-fold reduction.
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \caption{5-Fold Cross-Validation AUC (Mean $\pm$ Std)}
   \label{tab:cv}
@@ -378,9 +383,9 @@ Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Cons
     \toprule
     Scenario & RF & GB & LR \\
     \midrule
-    A: Baseline       & $0.884 \pm 0.054$ & $0.854 \pm 0.071$ & $0.852 \pm 0.049$ \\
+    A: Baseline       & $0.878 \pm 0.053$ & $0.854 \pm 0.069$ & $0.805 \pm 0.047$ \\
     B: Real + CTGAN   & $0.891 \pm 0.028$ & $0.873 \pm 0.032$ & $0.867 \pm 0.034$ \\
-    C: Real + Consensus & $\mathbf{0.917 \pm 0.014}$ & $\mathbf{0.892 \pm 0.020}$ & $0.873 \pm 0.030$ \\
+    C: Real + Consensus & $\mathbf{0.898 \pm 0.016}$ & $\mathbf{0.881 \pm 0.014}$ & $0.832 \pm 0.025$ \\
     D: Real + SMOTE   & $0.886 \pm 0.045$ & $0.860 \pm 0.063$ & $0.852 \pm 0.052$ \\
     \bottomrule
   \end{tabular}
@@ -390,7 +395,7 @@ Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results. Cons
 
 Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidence intervals for test-set AUC and McNemar's exact test results covering all four augmentation scenarios. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.28, confirming that no augmentation scenario produces a statistically significant change in predictive accuracy over the real-data baseline on the 83-patient held-out test set.
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \caption{95\% Bootstrap Confidence Intervals for Test-Set AUC (1000 resamples)}
   \label{tab:bootstrap}
@@ -414,7 +419,7 @@ Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidenc
   \end{tabular}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \caption{McNemar's Exact Test (Augmented vs.\ Baseline, $\alpha = 0.05$)}
   \label{tab:mcnemar}
@@ -432,22 +437,31 @@ Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidenc
     Logistic Regression & A vs.\ C & 4 & 4 & 1.000 \\
     Logistic Regression & A vs.\ D & 0 & 0 & 1.000 \\
     \bottomrule
+    \multicolumn{5}{l}{\footnotesize $n_{10}$: baseline correct, augmented wrong; $n_{01}$: augmented correct, baseline wrong.}
   \end{tabular}
-  \vspace{2pt}
-  \footnotesize{$n_{10}$: baseline correct, augmented wrong; $n_{01}$: augmented correct, baseline wrong.}
 \end{table}
 
+\FloatBarrier
 \subsection{Discussion}
 
 The results offer a nuanced picture of what synthetic augmentation can and cannot achieve on a rare tabular clinical dataset in an IoMT context. On the held-out test set, no augmentation strategy produces a statistically significant improvement over training on real data alone. This is a meaningful finding rather than a failure: the 276-patient PBC dataset contains sufficient signal for Gradient Boosting to reach AUC~$= 0.878$ without any augmentation, and adding synthetic patients that are distributional approximations of the real data does not substantially change what classifiers learn about the survival decision boundary when evaluated on 83 real patients.
 
-The cross-validation results reveal a genuine benefit that single-split evaluation obscures. Consensus augmentation reduces Random Forest variance four-fold across folds, indicating that the additional synthetic patients stabilise the classifier across different subsets of the training data. In an IoMT deployment setting where a clinical decision support model must perform reliably across patients of different disease stages, ages, and treatment backgrounds, a model with lower cross-validation variance is more trustworthy than one that achieves peak performance on one partition by chance.
+The cross-validation results reveal a genuine benefit that single-split evaluation obscures. Consensus augmentation reduces Gradient Boosting variance 4.9-fold and Random Forest variance 3.4-fold across folds, indicating that the additional synthetic patients stabilise classifiers across different subsets of the training data. In an IoMT deployment setting where a clinical decision support model must perform reliably across patients of different disease stages, ages, and treatment backgrounds, a model with lower cross-validation variance is more trustworthy than one that achieves peak performance on one partition by chance.
+
+A post-hoc power analysis was conducted to characterise the statistical sensitivity of the McNemar test on 83 patients. Assuming a typical discordant pair rate of approximately 15 per cent (12 discordant pairs per comparison), the test has only 49\% power to detect a moderate effect in which the augmented model wins 70\% of discordant cases, corresponding to a true accuracy gain of approximately 5.8 percentage points. Bootstrap simulation over 1000 synthetic trials confirms that McNemar's test on 83 patients has only 9\% power to detect a genuine 5 percentage-point improvement in accuracy. Achieving 80\% power at that modest effect size would require approximately 300 held-out patients. Fig.~\ref{fig:power} shows the power curve across discordant pair counts and the required sample size as a function of true accuracy improvement. These results do not invalidate the null finding; the observed p-values ranged from 0.50 to 1.00, far above the 0.05 threshold, rather than clustering at values just above it. However, they establish that the study is underpowered for detecting small benefits, and that a replication on a larger cohort is necessary before augmentation can be conclusively ruled out as clinically beneficial.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{power_analysis.png}
+  \caption{Post-hoc power analysis for McNemar's exact test on 83 held-out patients. Left: statistical power as a function of discordant pair count for three true effect sizes. At 12 discordant pairs (the approximate observed rate), power does not reach 80\% for any effect size below true\_p~$= 0.80$. Right: required total patient count for 80\% power as a function of true accuracy improvement. Approximately 300 patients are needed for a moderate effect and over 550 for a small one. The dashed lines mark the current test set (83) and the full dataset (276).}
+  \label{fig:power}
+\end{figure}
 
 An additional evaluation assessed whether a classifier trained exclusively on synthetic data can generalise to real patients. Using the 210 IQR-filtered CTGAN records as the sole training set and the held-out 83 real patients as the test set, Random Forest achieves AUC~$= 0.819$ and accuracy~$= 0.747$, Logistic Regression achieves AUC~$= 0.821$ and accuracy~$= 0.687$, and Gradient Boosting achieves AUC~$= 0.793$ and accuracy~$= 0.699$. These results demonstrate that classifiers trained entirely on synthetic CTGAN data retain a meaningful portion of their discriminative ability when tested on real patients, with AUC remaining above 0.79 for all three classifiers. This finding has direct relevance for federated IoMT settings where real patient data cannot be shared across institutions but synthetic surrogates are available: a model trained on synthetic data at a data-generating site can transfer meaningful predictive signal to a deployment site operating on real patients.
 
 Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest and Gradient Boosting trained under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest, with N\_Days and Bilirubin leading across both methods, followed by Prothrombin and Albumin. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema carry comparatively low weight. This pattern is clinically coherent and validates the integrity of the preprocessing and modelling pipeline.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{feature_importance.png}
   \caption{Feature importance rankings from Random Forest (left) and Gradient Boosting (right) trained on real data only under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest. N\_Days and Bilirubin are the two leading predictors across both classifiers, followed by Prothrombin and Albumin. Binary clinical indicators show comparatively low importance, consistent with the dominant role of laboratory measurements in PBC prognosis.}
@@ -457,6 +471,7 @@ Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest a
 % ---------------------------------------------------------------
 % Section V: Conclusion
 % ---------------------------------------------------------------
+\FloatBarrier
 \section{Conclusion}
 \label{sec:conclusion}
 
@@ -464,9 +479,9 @@ This study investigated whether deep generative synthetic data augmentation can 
 
 Two methodological contributions were introduced. An IQR-based physiological plausibility filter removes synthetic records with clinically implausible biomarker values before any downstream use, discarding between 54 and 58 per cent of adversarially generated records. A multi-method consensus voting mechanism accepts only synthetic patients corroborated independently by all three generative architectures in a standardised feature space.
 
-Four empirical findings stand out. Among individual generative models, CTGAN produces the best distributional fidelity at FID~$= 0.075$ and the most acceptable privacy profile at 9.0 per cent near-duplicates, making it the most suitable model for privacy-constrained IoMT augmentation. On the 83-patient held-out test set, no augmentation scenario achieves a statistically significant improvement over the real-data baseline, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Random Forest cross-validation AUC variance four-fold, from 0.054 to 0.014, demonstrating that synthetic patients drawn from a cross-architecture agreement region stabilise classifiers in a way that random oversampling methods do not. An additional synthetic-only evaluation shows that classifiers trained exclusively on 210 CTGAN-generated records and tested on 83 real patients achieve AUC values between 0.793 and 0.821, demonstrating that synthetic data retains transferable predictive signal even without any real patient exposure during training.
+Four empirical findings stand out. Among individual generative models, CTGAN produces the best distributional fidelity at FID~$= 0.075$ and the most acceptable privacy profile at 9.0 per cent near-duplicates, making it the most suitable model for privacy-constrained IoMT augmentation. On the 83-patient held-out test set, no augmentation scenario achieves a statistically significant improvement over the real-data baseline, confirming that distributional similarity does not guarantee predictive gain on real patients. Consensus augmentation reduces Gradient Boosting cross-validation AUC variance 4.9-fold (from 0.069 to 0.014) and Random Forest variance 3.4-fold (from 0.053 to 0.016), demonstrating that synthetic patients drawn from a cross-architecture agreement region stabilise classifiers in a way that random oversampling methods do not. An additional synthetic-only evaluation shows that classifiers trained exclusively on 210 CTGAN-generated records and tested on 83 real patients achieve AUC values between 0.793 and 0.821, demonstrating that synthetic data retains transferable predictive signal even without any real patient exposure during training.
 
-Future work should examine whether this stability effect translates into improved generalisation on external validation cohorts from different clinical sites. Incorporating differentially private training objectives into the TVAE architecture would address the memorisation risk identified in the privacy analysis. Extending the framework to longitudinal IoMT data streams, where temporal dependencies introduce additional generation challenges beyond those present in single-visit tabular records, represents a further natural direction for this line of research.
+A post-hoc power analysis shows that McNemar's exact test on 83 patients carries only 9\% power to detect a genuine 5 percentage-point accuracy gain; approximately 300 patients would be required for 80\% power at that effect size. Future work should therefore examine this question on larger cohorts and examine whether the stability effect translates into improved generalisation on external validation cohorts from different clinical sites. Incorporating differentially private training objectives into the TVAE architecture would address the memorisation risk identified in the privacy analysis. Extending the framework to longitudinal IoMT data streams, where temporal dependencies introduce additional generation challenges beyond those present in single-visit tabular records, represents a further natural direction for this line of research.
 
 % ---------------------------------------------------------------
 % References
