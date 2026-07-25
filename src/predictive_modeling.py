@@ -15,8 +15,10 @@ metrics like FID tell us whether the synthetic data looks statistically similar
 to the real data, but they do not tell us whether the synthetic data is useful
 for the task we actually care about, which is predicting patient outcomes.
 
-This module evaluates predictive utility by training classifiers under three
-different scenarios and measuring their performance on a held-out real test set.
+This module evaluates predictive utility by training classifiers under the
+real-data and synthetic-only scenarios (A, B, C, E) and measuring their
+performance on a held-out real test set. The SMOTE scenario (D) is computed
+separately in notebook 03.
 
 Training scenarios
     Scenario A: Baseline
@@ -33,7 +35,12 @@ Training scenarios
         records. The consensus set is expected to be the highest quality subset
         because it was endorsed by all three generative models.
 
-    Scenario D: Synthetic data only (CTGAN filtered)
+    Scenario D: Real plus SMOTE (classical baseline)
+        Computed separately in notebook 03: the real training patients are
+        augmented with SMOTE oversampling. This provides a classical
+        interpolation baseline against the deep generative scenarios.
+
+    Scenario E: Synthetic data only (CTGAN filtered)
         The classifier is trained exclusively on IQR-filtered CTGAN synthetic
         records with no real training patients included. This scenario acts as
         the synthetic-only baseline and answers the question: how well does a
@@ -173,7 +180,7 @@ def run_all_scenarios(train_real, test_real, filtered_ctgan, consensus_df):
         "A: Baseline (real data only)":          train_real,
         "B: Real data plus filtered CTGAN":      combine_and_clean(train_real, filtered_ctgan),
         "C: Real data plus consensus synthetic":  combine_and_clean(train_real, consensus_df),
-        "D: Synthetic data only (CTGAN filtered)": filtered_ctgan,
+        "E: Synthetic data only (CTGAN filtered)": filtered_ctgan,
     }
 
     all_records = []

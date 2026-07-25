@@ -114,7 +114,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
     For each threshold, the function records how many records pass, the source
     breakdown, the class balance, and the FID score versus real training data.
     """
-    thresholds = [0.3, 0.4, 0.5, 0.6, 0.7]
+    thresholds = [2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
     rows = []
 
     print("Running consensus at each threshold value. This may take a few minutes.")

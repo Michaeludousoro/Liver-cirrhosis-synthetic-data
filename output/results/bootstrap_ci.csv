@@ -2,9 +2,9 @@ Scenario,Classifier,AUC,CI Lower,CI Upper
 A: Baseline (real data only),Random Forest,0.8479,0.754,0.9383
 A: Baseline (real data only),Gradient Boosting,0.8776,0.7883,0.948
 A: Baseline (real data only),Logistic Regression,0.8291,0.7275,0.9156
-B: Real data plus filtered CTGAN,Random Forest,0.8418,0.7424,0.9335
-B: Real data plus filtered CTGAN,Gradient Boosting,0.8721,0.7755,0.9484
-B: Real data plus filtered CTGAN,Logistic Regression,0.8455,0.7455,0.9336
-C: Real data plus consensus synthetic,Random Forest,0.8539,0.7596,0.9332
-C: Real data plus consensus synthetic,Gradient Boosting,0.8321,0.7314,0.9193
-C: Real data plus consensus synthetic,Logistic Regression,0.8552,0.7555,0.9348
+B: Real data plus filtered CTGAN,Random Forest,0.8491,0.7621,0.9302
+B: Real data plus filtered CTGAN,Gradient Boosting,0.8448,0.7425,0.9298
+B: Real data plus filtered CTGAN,Logistic Regression,0.8345,0.7389,0.9167
+C: Real data plus consensus synthetic,Random Forest,0.8294,0.727,0.9175
+C: Real data plus consensus synthetic,Gradient Boosting,0.8376,0.7493,0.9189
+C: Real data plus consensus synthetic,Logistic Regression,0.8503,0.7537,0.9351

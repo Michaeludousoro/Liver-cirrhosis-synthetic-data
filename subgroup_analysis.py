@@ -152,7 +152,7 @@ def plot_subgroup(results_df):
     colors = {"Random Forest": "#3b82f6", "Gradient Boosting": "#059669",
                "Logistic Regression": "#ef4444"}
 
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+    fig, axes = plt.subplots(1, 2, figsize=(8, 3.5))
     fig.suptitle(
         "Subgroup Consistency Analysis\n"
         "AUC comparison: Scenario A (real only) vs Scenario C (equalised consensus)",

@@ -2,36 +2,36 @@ Subgroup,n,Deceased,Scenario,Classifier,AUC
 Early stage (1-2),17,4,A: Real only,Random Forest,0.5577
 Early stage (1-2),17,4,A: Real only,Gradient Boosting,0.6538
 Early stage (1-2),17,4,A: Real only,Logistic Regression,0.5769
-Early stage (1-2),17,4,C: Real + Consensus,Random Forest,0.5481
-Early stage (1-2),17,4,C: Real + Consensus,Gradient Boosting,0.5385
-Early stage (1-2),17,4,C: Real + Consensus,Logistic Regression,0.7115
+Early stage (1-2),17,4,C: Real + Consensus,Random Forest,0.5769
+Early stage (1-2),17,4,C: Real + Consensus,Gradient Boosting,0.5769
+Early stage (1-2),17,4,C: Real + Consensus,Logistic Regression,0.6538
 Late stage (3-4),66,29,A: Real only,Random Forest,0.8835
 Late stage (3-4),66,29,A: Real only,Gradient Boosting,0.9236
 Late stage (3-4),66,29,A: Real only,Logistic Regression,0.8723
-Late stage (3-4),66,29,C: Real + Consensus,Random Forest,0.8896
-Late stage (3-4),66,29,C: Real + Consensus,Gradient Boosting,0.9003
-Late stage (3-4),66,29,C: Real + Consensus,Logistic Regression,0.8686
+Late stage (3-4),66,29,C: Real + Consensus,Random Forest,0.8658
+Late stage (3-4),66,29,C: Real + Consensus,Gradient Boosting,0.9021
+Late stage (3-4),66,29,C: Real + Consensus,Logistic Regression,0.8639
 Female,72,27,A: Real only,Random Forest,0.8395
 Female,72,27,A: Real only,Gradient Boosting,0.8889
 Female,72,27,A: Real only,Logistic Regression,0.8469
-Female,72,27,C: Real + Consensus,Random Forest,0.8737
-Female,72,27,C: Real + Consensus,Gradient Boosting,0.8626
-Female,72,27,C: Real + Consensus,Logistic Regression,0.8412
+Female,72,27,C: Real + Consensus,Random Forest,0.8354
+Female,72,27,C: Real + Consensus,Gradient Boosting,0.8494
+Female,72,27,C: Real + Consensus,Logistic Regression,0.8272
 Male,11,6,A: Real only,Random Forest,0.8333
 Male,11,6,A: Real only,Gradient Boosting,0.8667
 Male,11,6,A: Real only,Logistic Regression,0.6667
-Male,11,6,C: Real + Consensus,Random Forest,0.5
-Male,11,6,C: Real + Consensus,Gradient Boosting,0.7333
-Male,11,6,C: Real + Consensus,Logistic Regression,0.7333
+Male,11,6,C: Real + Consensus,Random Forest,0.6167
+Male,11,6,C: Real + Consensus,Gradient Boosting,0.9
+Male,11,6,C: Real + Consensus,Logistic Regression,0.8333
 D-penicillamine,39,17,A: Real only,Random Forest,0.7727
 D-penicillamine,39,17,A: Real only,Gradient Boosting,0.8182
 D-penicillamine,39,17,A: Real only,Logistic Regression,0.8235
-D-penicillamine,39,17,C: Real + Consensus,Random Forest,0.7754
-D-penicillamine,39,17,C: Real + Consensus,Gradient Boosting,0.8155
-D-penicillamine,39,17,C: Real + Consensus,Logistic Regression,0.8556
+D-penicillamine,39,17,C: Real + Consensus,Random Forest,0.734
+D-penicillamine,39,17,C: Real + Consensus,Gradient Boosting,0.8128
+D-penicillamine,39,17,C: Real + Consensus,Logistic Regression,0.861
 Placebo,44,16,A: Real only,Random Forest,0.9085
 Placebo,44,16,A: Real only,Gradient Boosting,0.9375
 Placebo,44,16,A: Real only,Logistic Regression,0.8549
-Placebo,44,16,C: Real + Consensus,Random Forest,0.9208
-Placebo,44,16,C: Real + Consensus,Gradient Boosting,0.8906
-Placebo,44,16,C: Real + Consensus,Logistic Regression,0.846
+Placebo,44,16,C: Real + Consensus,Random Forest,0.904
+Placebo,44,16,C: Real + Consensus,Gradient Boosting,0.8817
+Placebo,44,16,C: Real + Consensus,Logistic Regression,0.8482

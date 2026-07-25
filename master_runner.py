@@ -94,6 +94,7 @@ import pandas as pd
 # Allow Python to find the src package when this script is run directly
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from src.seeding import set_global_seeds
 from src.data_loader import (
     load_complete_data, split_data, fit_scaler,
     save_data, save_scaler, post_process_synthetic,
@@ -115,7 +116,7 @@ from src.visualizations      import (
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 OUT_DATA    = os.path.join(BASE_DIR, "output", "data")
 OUT_RESULTS = os.path.join(BASE_DIR, "output", "results")
-RAW_CSV     = os.path.join(BASE_DIR, "..", "data", "raw", "cirrhosis.csv")
+RAW_CSV     = os.path.join(BASE_DIR, "data", "raw", "cirrhosis.csv")
 
 os.makedirs(OUT_DATA,    exist_ok=True)
 os.makedirs(OUT_RESULTS, exist_ok=True)
@@ -144,6 +145,10 @@ def main(args):
     re-run individual steps in isolation during development.
     """
     start_time = time.time()
+
+    # Fix all random number generators so the whole run is reproducible.
+    set_global_seeds(args.seed)
+    print(f"  Global seed set to {args.seed} (Python, NumPy, TensorFlow)")
 
 
     section_header("Step 1 of 9: Data Loading and Preprocessing")
@@ -241,32 +246,34 @@ def main(args):
     print(iqr_summary.to_string(index=False))
 
 
-    section_header("Step 4 of 9: Consensus Voting")
+    section_header("Step 4 of 9: Consensus Voting (equalised, tolerance 5.0)")
 
-    # Start with the standard tolerance and increase it if no consensus is found.
-    # This can happen when models are under-trained (e.g. in quick mode).
+    # Paper method: flat consensus (both other models must agree) at tolerance
+    # 5.0 in standardised space. Before voting, the TVAE pool is downsampled to
+    # the size of the smallest adversarial pool so the higher-fidelity GAN and
+    # CTGAN are not swamped by the far larger TVAE pool (equalisation).
+    n_adv_min = min(len(filtered_gan), len(filtered_ctgan))
+    tvae_equalised = filtered_tvae.sample(
+        n=min(n_adv_min, len(filtered_tvae)), random_state=args.seed
+    ).reset_index(drop=True)
+    print(f"  Equalisation: TVAE pool downsampled from {len(filtered_tvae)} "
+          f"to {len(tvae_equalised)} (smallest adversarial pool = {n_adv_min})")
+
     consensus_df, source_counts = run_consensus(
-        filtered_gan, filtered_ctgan, filtered_tvae,
-        tolerance=0.5, min_votes=2, verbose=True
+        filtered_gan, filtered_ctgan, tvae_equalised,
+        tolerance=5.0, min_votes=2, verbose=True
     )
 
-    for fallback_tolerance in [1.0, 2.0, 5.0]:
-        if len(consensus_df) > 0:
-            break
-        print(f"  No consensus found at default tolerance. Retrying at tolerance {fallback_tolerance} ...")
-        consensus_df, source_counts = run_consensus(
-            filtered_gan, filtered_ctgan, filtered_tvae,
-            tolerance=fallback_tolerance, min_votes=2, verbose=True
-        )
-
     if len(consensus_df) == 0:
-        print("  No consensus found even at tolerance 5.0.")
+        print("  No consensus found at tolerance 5.0.")
         print("  This typically means the models were trained for too few epochs.")
         print("  Substituting filtered CTGAN data as a fallback for Scenario C.")
         consensus_df  = filtered_ctgan.copy()
         source_counts = {"CTGAN": len(filtered_ctgan), "GAN": 0, "TVAE": 0}
 
+    # Save under both names: this equalised set is the consensus the paper uses.
     save_data(consensus_df, "consensus.csv")
+    save_data(consensus_df, "consensus_equalised.csv")
     consensus_summary = consensus_summary_df(source_counts)
     consensus_summary.to_csv(
         os.path.join(OUT_RESULTS, "consensus_summary.csv"), index=False
@@ -495,6 +502,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--print_every", type=int, default=100,
         help="Print training progress every this many epochs (default 100)"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=42,
+        help="Global random seed for reproducibility (default 42)"
     )
     parser.add_argument(
         "--quick", action="store_true",

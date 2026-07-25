@@ -1,13 +1,13 @@
-Scenario,Classifier,Mean AUC,Std AUC
-A: Baseline (real data only),Random Forest,0.8843,0.0537
-A: Baseline (real data only),Gradient Boosting,0.8539,0.071
-A: Baseline (real data only),Logistic Regression,0.8522,0.0491
-B: Real data plus filtered CTGAN,Random Forest,0.891,0.0276
-B: Real data plus filtered CTGAN,Gradient Boosting,0.873,0.0317
-B: Real data plus filtered CTGAN,Logistic Regression,0.867,0.0339
-C: Real data plus consensus synthetic,Random Forest,0.9171,0.0143
-C: Real data plus consensus synthetic,Gradient Boosting,0.892,0.0197
-C: Real data plus consensus synthetic,Logistic Regression,0.8727,0.0303
-D: Synthetic data only (CTGAN filtered),Random Forest,0.9111,0.029
-D: Synthetic data only (CTGAN filtered),Gradient Boosting,0.8788,0.0158
-D: Synthetic data only (CTGAN filtered),Logistic Regression,0.9118,0.0279
+Scenario,Classifier,Mean AUC,Std AUC,CI Lower,CI Upper
+A: Baseline (real data only),Random Forest,0.8843,0.0537,0.779,0.9897
+A: Baseline (real data only),Gradient Boosting,0.8539,0.071,0.7148,0.993
+A: Baseline (real data only),Logistic Regression,0.8522,0.0491,0.756,0.9485
+B: Real data plus filtered CTGAN,Random Forest,0.8649,0.0498,0.7673,0.9624
+B: Real data plus filtered CTGAN,Gradient Boosting,0.8286,0.063,0.7051,0.9521
+B: Real data plus filtered CTGAN,Logistic Regression,0.8469,0.0585,0.7322,0.9615
+C: Real data plus consensus synthetic,Random Forest,0.8548,0.0456,0.7655,0.9442
+C: Real data plus consensus synthetic,Gradient Boosting,0.8329,0.0538,0.7275,0.9383
+C: Real data plus consensus synthetic,Logistic Regression,0.8478,0.0557,0.7387,0.957
+D: Real data plus SMOTE,Random Forest,0.8859,0.0449,0.7979,0.9739
+D: Real data plus SMOTE,Gradient Boosting,0.8604,0.0627,0.7375,0.9832
+D: Real data plus SMOTE,Logistic Regression,0.8521,0.0522,0.7499,0.9544

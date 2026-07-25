@@ -1,25 +1,25 @@
 Method,Feature,Chi2,p_value,Significant_difference
-GAN (filtered),Sex,3.8537,0.049637,Yes
-GAN (filtered),Drug,5.8813,0.015302,Yes
-GAN (filtered),Ascites,146.1223,0.0,Yes
-GAN (filtered),Hepatomegaly,18.6388,1.6e-05,Yes
-GAN (filtered),Spiders,2.1157,0.145799,No
-GAN (filtered),Edema,9.3548,0.009303,Yes
-GAN (filtered),Stage,37.3549,0.0,Yes
-GAN (filtered),Status,33.0067,0.0,Yes
-CTGAN (filtered),Sex,34.6207,0.0,Yes
-CTGAN (filtered),Drug,0.1133,0.736373,No
-CTGAN (filtered),Ascites,134.2422,0.0,Yes
-CTGAN (filtered),Hepatomegaly,4.3178,0.037716,Yes
-CTGAN (filtered),Spiders,4.9567,0.02599,Yes
-CTGAN (filtered),Edema,5.3731,0.068117,No
-CTGAN (filtered),Stage,17.1446,0.00066,Yes
-CTGAN (filtered),Status,41.3203,0.0,Yes
-TVAE (filtered),Drug,14.8379,0.000117,Yes
-TVAE (filtered),Hepatomegaly,0.8229,0.364321,No
-TVAE (filtered),Spiders,380.2083,0.0,Yes
-TVAE (filtered),Status,55.99,0.0,Yes
-Consensus,Drug,10.317,0.001318,Yes
-Consensus,Hepatomegaly,6.5732,0.010353,Yes
-Consensus,Spiders,120.542,0.0,Yes
-Consensus,Stage,157.2036,0.0,Yes
+GAN (filtered),Sex,18.2155,2e-05,Yes
+GAN (filtered),Drug,1.2644,0.260813,No
+GAN (filtered),Hepatomegaly,2.1442,0.143105,No
+GAN (filtered),Spiders,0.0003,0.986304,No
+GAN (filtered),Edema,119.8572,0.0,Yes
+GAN (filtered),Stage,2.8298,0.418626,No
+GAN (filtered),Status,4.8944,0.026944,Yes
+CTGAN (filtered),Sex,6.4565,0.011055,Yes
+CTGAN (filtered),Drug,0.0953,0.757512,No
+CTGAN (filtered),Ascites,3.1969,0.073777,No
+CTGAN (filtered),Hepatomegaly,6.188,0.012862,Yes
+CTGAN (filtered),Spiders,0.5426,0.461337,No
+CTGAN (filtered),Edema,7.3943,0.024794,Yes
+CTGAN (filtered),Stage,3.5357,0.316157,No
+CTGAN (filtered),Status,4.5042,0.033812,Yes
+TVAE (filtered),Drug,91.749,0.0,Yes
+TVAE (filtered),Hepatomegaly,8.1632,0.004275,Yes
+TVAE (filtered),Spiders,1309.2872,0.0,Yes
+TVAE (filtered),Status,32.8284,0.0,Yes
+Consensus,Drug,9.3431,0.002238,Yes
+Consensus,Hepatomegaly,0.3414,0.55902,No
+Consensus,Spiders,29.2675,0.0,Yes
+Consensus,Stage,51.8,0.0,Yes
+Consensus,Status,18.5999,1.6e-05,Yes

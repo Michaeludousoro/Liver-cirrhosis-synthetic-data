@@ -210,7 +210,7 @@ def run_dp_estimation(n_train=193, n_epochs=300, batch_size=32, delta=1e-5):
 
 
 def plot_results(perturb_df, dp_df):
-    fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4))
     fig.suptitle(
         "TVAE Privacy Enhancement Analysis\n"
         "Output perturbation tradeoff and DP-SGD epsilon estimates",
