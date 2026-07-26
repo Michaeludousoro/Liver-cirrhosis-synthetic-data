@@ -211,12 +211,6 @@ def run_dp_estimation(n_train=193, n_epochs=300, batch_size=32, delta=1e-5):
 
 def plot_results(perturb_df, dp_df):
     fig, axes = plt.subplots(1, 3, figsize=(13, 4))
-    fig.suptitle(
-        "TVAE Privacy Enhancement Analysis\n"
-        "Output perturbation tradeoff and DP-SGD epsilon estimates",
-        fontsize=12, fontweight="bold"
-    )
-
     ax1 = axes[0]
     ax1.plot(perturb_df["sigma"], perturb_df["near_dup_rate_pct"],
              color="#ef4444", linewidth=2.5, marker="o", markersize=8)

@@ -117,7 +117,7 @@ Patients 313--418 belong to an observational cohort missing between 9 and 10 lab
 
 The 276 records are divided into a training set of 193 patients and a held-out test set of 83 patients using stratified random splitting with seed 42, preserving class balance in both partitions (training: 115 survived/transplanted = 59.6\%, 78 deceased = 40.4\%). The overall pipeline is illustrated in Fig.~\ref{fig:pipeline}.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig01_pipeline_flowchart.png}
   \caption{End-to-end synthetic data pipeline. The raw 418-patient dataset passes through a complete-case filter and a preprocessing stage before the 193-patient training set feeds three parallel generative models. Each model's 500 generated records pass through an IQR plausibility filter before all three filtered pools enter the consensus voting stage.}
@@ -152,7 +152,7 @@ A Tukey fence filter is applied independently to each model's output. For each o
 
 Applied to 500 generated records per model, the filter retained 331 GAN records (66.2\%), 292 CTGAN records (58.4\%), and 499 TVAE records (99.8\%). Fig.~\ref{fig:iqr} illustrates the effect on the Bilirubin distribution, the most challenging continuous feature to reproduce faithfully.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig02_iqr_filtering.png}
   \caption{Effect of IQR-based Tukey fence filtering on the Bilirubin distribution for all three generative models. Grey bars show real patient density. Pink bars show unfiltered synthetic distribution; coloured bars show the post-filter distribution. The GAN and CTGAN produce records extending beyond 15~mg/dL that the filter removes. The TVAE retains all generated records but produces a distribution shifted rightward relative to real patients.}
@@ -165,7 +165,7 @@ A consensus voting mechanism is applied that retains only records independently 
 
 A StandardScaler is fitted on the union of all three filtered datasets. For each candidate record from one model, the minimum Euclidean distance to any record from each of the other two models is computed in standardised space. The candidate is accepted if both other models have a record within tolerance~$= 5.0$ standardised units. This process repeats with each filtered dataset as the candidate pool in turn, and exact duplicates are removed from the final set. The threshold of 5.0 was selected on the basis of a systematic sensitivity analysis conducted across eight values from 2.5 to 6.0. At thresholds of 3.0 and below, the accepted set contains around 10\% deceased patients or fewer, a severe class imbalance relative to the real training cohort (40\% deceased). As the tolerance increases the deceased fraction recovers (24.7\% at 5.0) and the FID score falls monotonically (0.095 at 5.0), after which further increases yield only marginal FID improvements (0.0864 at 5.5, 0.0829 at 6.0) while admitting records with progressively weaker cross-model agreement. The value of 5.0 therefore represents the point at which class balance becomes acceptable and the quality improvement curve begins to flatten. To address the pool-size imbalance across the three filtered datasets (GAN 331 records, CTGAN 292 records, TVAE 499 records), the TVAE pool is randomly downsampled to 292 records before voting, matching the size of the smallest adversarial pool. This equalisation gives the two higher-fidelity adversarial models a proportionally stronger role in the consensus. The equalised consensus of 787 records achieves FID 0.0809, with source composition GAN 33.2\%, CTGAN 29.7\%, and TVAE 37.1\%. Fig.~\ref{fig:consensus} shows the source composition of the resulting set.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig03_consensus_distribution.png}
   \caption{Source composition of the 787 equalised consensus records. Left: absolute record counts per generative method after consensus voting with TVAE pool downsampled to 292. Right: proportional contribution as a pie chart. GAN contributes 33.2\%, CTGAN 29.7\%, and TVAE 37.1\%.}
@@ -203,7 +203,7 @@ The classifiers use fixed configurations (Random Forest and Gradient Boosting wi
 
 Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. The GAN and CTGAN each reject roughly one third to one half of their generated records; the TVAE retains almost all. The consensus procedure accepts 787 records from the equalised filtered pools (TVAE downsampled to 292).
 
-\begin{table}[!t]
+\begin{table}[!tb]
   \centering
   \caption{Synthetic Data Retention and FID Scores}
   \label{tab:retention}
@@ -223,7 +223,7 @@ Table~\ref{tab:retention} summarises IQR filter retention rates and FID scores. 
 
 Fig.~\ref{fig:fid} shows the tabular FID scores for all four synthetic datasets. CTGAN achieves the lowest FID of 0.0724, followed by the Vanilla GAN at 0.0995. The TVAE produces an FID of 0.2280 despite retaining all generated records, confirming that smooth variational generation reduces distributional sharpness. The equalised consensus set scores 0.0809.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig04_fid_comparison.png}
   \caption{Tabular Fr\'{e}chet Inception Distance scores for all four synthetic datasets. Lower scores indicate greater distributional alignment with real training data. CTGAN achieves the lowest FID at 0.0724. The TVAE, despite retaining almost all generated records through the IQR filter, shows the highest FID at 0.2280, reflecting over-smoothing of clinical feature distributions. The equalised consensus set scores 0.0809, below the individual TVAE FID, confirming that pool equalisation improves distributional fidelity by reducing over-representation of variational samples.}
@@ -238,14 +238,14 @@ Per-feature KS tests show a consistent pattern. The filtered GAN shows no signif
 
 Fig.~\ref{fig:privacy} shows the privacy risk analysis using nearest-neighbour distances in standardised feature space. The GAN and CTGAN distributions are centred well above the risk threshold (5th percentile of real-to-real distances), indicating that most adversarially generated records fall at a safe distance from any real patient. The TVAE and consensus distributions have substantial mass below the threshold, reflecting the broader coverage of the variational latent space and the fact that consensus acceptance pools records lying close to real patients. Table~\ref{tab:privacy} gives the near-duplicate rates and mean nearest-neighbour distances for each method. Consensus voting does not improve on the individual adversarial pools. At a 21.1\% near-duplicate rate it is far riskier than the filtered GAN (7.3\%) or CTGAN (9.6\%), because it inherits the TVAE records that sit closest to real patients.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig05_privacy_risk_analysis.png}
   \caption{Privacy disclosure risk analysis using nearest-neighbour distances in standardised feature space. Left: violin plots of distances from each synthetic record to its closest real training patient. The red dashed line marks the risk threshold at the 5th percentile of real-to-real distances. GAN and CTGAN distributions are centred above this threshold. Right: near-duplicate rates by method. GAN (7.3\%) and CTGAN (9.6\%) present low privacy risk, TVAE the highest at 35.7\%, and the equalised consensus set 21.1\%.}
   \label{fig:privacy}
 \end{figure}
 
-\begin{table}[!t]
+\begin{table}[!tb]
   \centering
   \caption{Privacy Risk Analysis}
   \label{tab:privacy}
@@ -298,7 +298,7 @@ Table~\ref{tab:performance} reports complete test-set metrics across all five sc
 
 Fig.~\ref{fig:roc} shows the ROC curves for all three classifiers across all four scenarios on the 83-patient real held-out test set. All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878; the best augmented result is Logistic Regression under Scenario C at 0.850, which still does not exceed the baseline peak.
 
-\begin{figure}[t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig06_roc_curves.png}
   \caption{ROC curves by classifier and training scenario on the 83-patient real held-out test set: Random Forest (left), Gradient Boosting (centre), Logistic Regression (right). All curves lie substantially above the random classifier diagonal. Gradient Boosting under Scenario A achieves the highest AUC at 0.878. Scenario D (SMOTE) achieves the highest overall accuracy at 0.807 under Gradient Boosting.}
@@ -311,7 +311,7 @@ Because all of these numbers appear in Table~\ref{tab:performance}, the correspo
 
 Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results, computed with synthetic records confined to the training side of each fold and every validation fold containing real patients only. Under this leakage-free protocol no augmentation scenario improves the mean cross-validated AUC over the real-data baseline: the baseline already reaches the highest Random Forest mean (0.884), and consensus augmentation (Scenario C) leaves the mean essentially unchanged for all three classifiers. The fold-to-fold standard deviation is likewise not meaningfully reduced: Gradient Boosting changes only from 0.071 in Scenario A to 0.054 in Scenario C (a 1.3-fold change) and Random Forest from 0.054 to 0.046 (a 1.2-fold change). This contrasts sharply with the large apparent variance reductions that arise if synthetic records are allowed into the validation folds, and shows that the earlier impression of a stability gain was an artefact of evaluating partly on synthetic data.
 
-\begin{table}[!t]
+\begin{table}[!tb]
   \centering
   \caption{5-Fold Cross-Validation AUC (Mean $\pm$ Std, real-only validation folds)}
   \label{tab:cv}
@@ -331,71 +331,51 @@ Table~\ref{tab:cv} presents 5-fold stratified cross-validation AUC results, comp
 
 \subsection{Bootstrap Confidence Intervals and McNemar's Test}
 
-Tables~\ref{tab:bootstrap} and~\ref{tab:mcnemar} report 95\% bootstrap confidence intervals for test-set AUC and McNemar's exact test results for the two deep-generative augmentation scenarios against the baseline. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.22, confirming that no augmentation scenario produces a statistically significant change in predictive accuracy over the real-data baseline on the 83-patient held-out test set.
+Table~\ref{tab:significance} reports 95\% bootstrap confidence intervals for test-set AUC alongside McNemar's exact test for the two deep-generative augmentation scenarios against the baseline. All confidence intervals overlap substantially across scenarios, and all McNemar p-values exceed 0.22, confirming that no augmentation scenario produces a statistically significant change in predictive accuracy over the real-data baseline on the 83-patient held-out test set.
 
-\begin{table}[!htb]
+\begin{table}[!htbp]
   \centering
-  \caption{95\% Bootstrap Confidence Intervals for Test-Set AUC (1000 resamples)}
-  \label{tab:bootstrap}
+  \caption{Test-Set AUC with 95\% Bootstrap Confidence Intervals (1000 Resamples) and McNemar's Exact Test Against the Baseline ($\alpha = 0.05$). $n_{10}$ counts patients the baseline classified correctly and the augmented model did not; $n_{01}$ counts the reverse. McNemar compares each augmented scenario against Scenario~A, so no test applies to the baseline rows.}
+  \label{tab:significance}
   \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{llcc}
+  \begin{tabular}{llccccc}
     \toprule
-    Scenario & Classifier & AUC & 95\% CI \\
+    Clf. & Scenario & AUC & 95\% CI & $n_{10}$ & $n_{01}$ & $p$ \\
     \midrule
-    A: Baseline       & RF  & 0.8479 & [0.754, 0.938] \\
-    A: Baseline       & GB  & 0.8776 & [0.788, 0.948] \\
-    A: Baseline       & LR  & 0.8291 & [0.728, 0.916] \\
-    B: Real + CTGAN   & RF  & 0.8491 & [0.762, 0.930] \\
-    B: Real + CTGAN   & GB  & 0.8448 & [0.743, 0.930] \\
-    B: Real + CTGAN   & LR  & 0.8345 & [0.739, 0.917] \\
-    C: Real + Consensus & RF & 0.8294 & [0.727, 0.918] \\
-    C: Real + Consensus & GB & 0.8376 & [0.749, 0.919] \\
-    C: Real + Consensus & LR & 0.8503 & [0.754, 0.935] \\
-    \bottomrule
-  \end{tabular}%
-  }
-\end{table}
-
-\begin{table}[!htb]
-  \centering
-  \caption{McNemar's Exact Test (Augmented vs.\ Baseline, $\alpha = 0.05$)}
-  \label{tab:mcnemar}
-  \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{llccc}
-    \toprule
-    Classifier & Comparison & $n_{10}$ & $n_{01}$ & $p$-value \\
+    RF & A: Baseline        & 0.8479 & [0.754, 0.938] & --- & --- & --- \\
+    RF & B: Real + CTGAN    & 0.8491 & [0.762, 0.930] & 2 & 2 & 1.000 \\
+    RF & C: Real + Consensus& 0.8294 & [0.727, 0.918] & 7 & 3 & 0.344 \\
     \midrule
-    Random Forest       & A vs.\ B & 2 & 2 & 1.000 \\
-    Random Forest       & A vs.\ C & 7 & 3 & 0.344 \\
-    Gradient Boosting   & A vs.\ B & 4 & 2 & 0.688 \\
-    Gradient Boosting   & A vs.\ C & 8 & 3 & 0.227 \\
-    Logistic Regression & A vs.\ B & 7 & 4 & 0.549 \\
-    Logistic Regression & A vs.\ C & 4 & 5 & 1.000 \\
+    GB & A: Baseline        & 0.8776 & [0.788, 0.948] & --- & --- & --- \\
+    GB & B: Real + CTGAN    & 0.8448 & [0.743, 0.930] & 4 & 2 & 0.688 \\
+    GB & C: Real + Consensus& 0.8376 & [0.749, 0.919] & 8 & 3 & 0.227 \\
+    \midrule
+    LR & A: Baseline        & 0.8291 & [0.728, 0.916] & --- & --- & --- \\
+    LR & B: Real + CTGAN    & 0.8345 & [0.739, 0.917] & 7 & 4 & 0.549 \\
+    LR & C: Real + Consensus& 0.8503 & [0.754, 0.935] & 4 & 5 & 1.000 \\
     \bottomrule
-    \multicolumn{5}{l}{\footnotesize $n_{10}$: baseline correct, augmented wrong; $n_{01}$: augmented correct, baseline wrong.}
   \end{tabular}%
   }
 \end{table}
 
 Fig.~\ref{fig:importance} shows feature importance rankings from Random Forest and Gradient Boosting trained under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest, with N\_Days and Bilirubin leading across both methods, followed by Prothrombin and Albumin. Binary clinical indicators such as Ascites, Drug, Spiders, and Edema carry comparatively low weight. This pattern is clinically coherent and validates the integrity of the preprocessing and modelling pipeline.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig07_feature_importance.png}
   \caption{Feature importance rankings from Random Forest (left) and Gradient Boosting (right) trained on real data only under Scenario A. Both classifiers consistently rank continuous laboratory biomarkers highest. N\_Days and Bilirubin are the two leading predictors across both classifiers, followed by Prothrombin and Albumin. Binary clinical indicators show comparatively low importance, consistent with the dominant role of laboratory measurements in PBC prognosis.}
   \label{fig:importance}
 \end{figure}
 
-\FloatBarrier
 \subsection{Discussion}
 
 None of the augmentation scenarios produced a statistically significant improvement on the 83-patient held-out test set. This result is not surprising once you consider that Gradient Boosting already reaches AUC~$= 0.878$ on real data alone. The PBC dataset carries enough signal for classifiers to perform well without synthetic help, and adding distributional approximations of the real patients does not move the decision boundary enough to change held-out predictions.
 
 The cross-validation results reinforce this picture rather than overturning it. When training is repeated across five folds with synthetic data confined to the training side, no augmentation scenario improves the mean AUC over the baseline, and the fold-to-fold variance is essentially unchanged (Gradient Boosting 0.071 to 0.054, Random Forest 0.054 to 0.046). An earlier analysis that mixed synthetic records into the validation folds appeared to show a large variance reduction, but that was an evaluation artefact: the consensus records are selected from the dense centre of feature space and are therefore easier and more homogeneous to predict, so including them in validation mechanically shrank the measured variance. Once validation is restricted to real patients, the apparent stability benefit disappears. This is a cautionary result in its own right---synthetic augmentation must never be evaluated on folds that themselves contain synthetic data.
 
-Fig.~\ref{fig:power} quantifies the statistical power of the McNemar test for this dataset size. Assuming a discordant pair rate of around 15 per cent, the test has only 9\% power to detect a genuine 5 percentage-point accuracy improvement. To reach 80\% power at that effect size, roughly 300 held-out patients would be needed. This does not invalidate the null result---the p-values in this study ranged from 0.50 to 1.00, nowhere near the threshold---but it does mean the study cannot rule out a small real benefit. A replication on a larger cohort is needed before augmentation can be conclusively dismissed as unhelpful for this disease.
+Fig.~\ref{fig:power} quantifies the statistical power of the McNemar test for this dataset size. Assuming a discordant pair rate of around 15 per cent, the test has only 9\% power to detect a genuine 5 percentage-point accuracy improvement. To reach 80\% power at that effect size, roughly 300 held-out patients would be needed. This does not invalidate the null result---the p-values in this study ranged from 0.23 to 1.00, nowhere near the threshold---but it does mean the study cannot rule out a small real benefit. A replication on a larger cohort is needed before augmentation can be conclusively dismissed as unhelpful for this disease.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig08_power_analysis.png}
   \caption{Post-hoc power analysis for McNemar's exact test on 83 held-out patients. Left: statistical power versus number of discordant pairs for three assumed response proportions; with roughly 12 observed discordant pairs the test has below 9\% power to detect a 5 percentage-point accuracy gain at $\alpha = 0.05$. Right: required test-set size for 80\% power versus true accuracy improvement assuming a 15\% discordant pair rate, showing that approximately 300 patients are needed.}
@@ -406,14 +386,14 @@ Scenario~E in Table~\ref{tab:performance} evaluates whether a classifier trained
 
 Fig.~\ref{fig:subgroup} shows the subgroup consistency results. Classifiers trained under Scenario A and Scenario C were evaluated separately on three clinically meaningful splits of the test set: disease stage (early Stage 1--2, n~$= 17$; late Stage 3--4, n~$= 66$), sex (female n~$= 72$; male n~$= 11$), and treatment arm (D-penicillamine n~$= 39$; placebo n~$= 44$). For the subgroups large enough to produce reliable estimates---late stage, female, and both treatment arms---AUC differences between Scenario A and Scenario C stayed within about $\pm 0.06$ across all classifiers, with no consistent direction of change, and every AUC exceeded 0.73. The null result therefore holds across the main clinical strata in this cohort, not just overall. The early-stage ($n = 17$) and male ($n = 11$) subgroups were too small to draw conclusions from and show erratic swings---for example, Random Forest AUC moves from 0.83 to 0.62 on the 11 male patients---so their results are reported only for completeness. External validation on an independent cohort is still needed.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig09_subgroup_analysis.png}
   \caption{Subgroup consistency analysis comparing Scenario A (real data only) and Scenario C (real + equalised consensus) across six clinical splits of the 83-patient test set. AUC differences between scenarios remain within about $\pm 0.06$ for all subgroups large enough for reliable inference (late stage, female, both treatment arms), and every AUC exceeds 0.73. Early-stage ($n = 17$) and male ($n = 11$) subgroups are too small to draw conclusions from.}
   \label{fig:subgroup}
 \end{figure}
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{fig10_privacy_enhancement.png}
   \caption{TVAE privacy enhancement analysis. Left: near-duplicate rate versus Gaussian output noise $\sigma$ (in feature standard-deviation units); at $\sigma = 0.7$ the rate falls from 35.7\% to 1.4\%, crossing the 5\% near-duplicate target. Centre: tabular FID score versus $\sigma$; FID improves from 0.228 to 0.0481, below the equalised consensus benchmark of 0.0809. Right: estimated DP-SGD privacy budget $\varepsilon$ versus noise multiplier at $\delta = 10^{-5}$; $\varepsilon$ remains above 14 even at a multiplier of 3.0, confirming that formal differential privacy is not achievable at $n = 193$.}

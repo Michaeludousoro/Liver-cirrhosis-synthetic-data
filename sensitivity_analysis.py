@@ -226,11 +226,6 @@ def plot_sensitivity(results_df):
     valid = results_df[results_df["FID score"].notna()].copy()
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle(
-        "Consensus Threshold Sensitivity Analysis",
-        fontsize=13, fontweight="bold", y=1.01
-    )
-
     # Left panel: number of records accepted
     ax1 = axes[0]
     ax1.plot(valid["Threshold"], valid["Records passed"],

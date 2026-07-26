@@ -137,7 +137,6 @@ def plot_training_losses(gan_model, ctgan_model, tvae_model):
     ax.set_ylabel("Loss")
     ax.legend()
 
-    fig.suptitle("Figure 0: Generative Model Training Curves", fontsize=13)
     fig.tight_layout()
     _save_figure(fig, "fig0_training_losses.png")
 
@@ -229,7 +228,6 @@ def plot_iqr_filtering(real_df, raw_synthetics, filtered_synthetics,
         ax.set_ylabel("Density")
         ax.legend(fontsize=8)
 
-    fig.suptitle(f"Figure 2: IQR Filtering Effect on {col}", fontsize=13, y=1.02)
     fig.tight_layout()
     _save_figure(fig, "fig2_iqr_filtering.png")
 
@@ -278,8 +276,6 @@ def plot_distribution_comparison(real_df, synthetic_dict, cols=None):
     for j in range(len(cols), 6):
         axes[j].set_visible(False)
 
-    fig.suptitle("Figure 3: Feature Distributions — Real versus Synthetic Methods",
-                 fontsize=13)
     fig.tight_layout()
     _save_figure(fig, "fig3_distribution_comparison.png")
 
@@ -319,7 +315,6 @@ def plot_correlation_heatmap(real_df, consensus_df, numeric_cols=None):
         ax.set_title(title)
         plt.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
 
-    fig.suptitle("Figure 4: Pearson Correlation Structure Comparison", fontsize=13)
     fig.tight_layout()
     _save_figure(fig, "fig4_correlation_heatmap.png")
 
@@ -358,8 +353,6 @@ def plot_consensus_distribution(source_counts):
                autopct="%1.1f%%", startangle=140, wedgeprops=wedge_style)
     ax_pie.set_title("Proportional contribution")
 
-    fig.suptitle(f"Figure 5: Consensus Source Distribution (total {total} records)",
-                 fontsize=13)
     fig.tight_layout()
     _save_figure(fig, "fig5_consensus_distribution.png")
 
@@ -471,8 +464,6 @@ def plot_model_comparison(results_df, metrics=None):
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center",
                bbox_to_anchor=(0.5, 1.02), ncol=len(classifiers), fontsize=8)
-    fig.suptitle("Figure 7: Classifier Performance Across Training Scenarios",
-                 fontsize=13, y=1.08)
     fig.tight_layout()
     _save_figure(fig, "fig7_model_comparison.png")
 
@@ -525,11 +516,6 @@ def plot_all_metrics(results_df):
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center",
                bbox_to_anchor=(0.5, -0.12), ncol=len(classifiers), fontsize=8)
-    fig.suptitle(
-        "Figure 8: All Metrics Across Scenarios  "
-        "(A = Baseline,  B = Real plus CTGAN,  C = Real plus Consensus,  D = Synthetic only)",
-        fontsize=12
-    )
     fig.tight_layout()
     _save_figure(fig, "fig8_all_metrics.png")
 

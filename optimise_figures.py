@@ -34,6 +34,7 @@ from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIG_DIR  = os.path.join(BASE_DIR, "paper", "figures")
+SUP_DIR  = os.path.join(BASE_DIR, "paper", "figures_supplementary")
 
 # Longest edge in pixels. Every figure in the paper is placed at
 # width=\columnwidth, i.e. about 3.5 inches, so 1600 pixels still corresponds
@@ -62,12 +63,14 @@ def optimise(path):
     return before, after, (width, height), new_size
 
 
-def main():
-    paths = sorted(glob.glob(os.path.join(FIG_DIR, "fig[0-2][0-9]_*.png")))
+def optimise_dir(directory, pattern, label):
+    """Optimise every figure in one directory. Returns (bytes before, bytes after)."""
+    paths = sorted(glob.glob(os.path.join(directory, pattern)))
     if not paths:
-        print(f"  No numbered figures found in {FIG_DIR}. Run organise_figures.py first.")
-        return
+        print(f"  No figures matching {pattern} in {directory}. Run organise_figures.py first.")
+        return 0, 0
 
+    print(f"{label}\n")
     total_before = total_after = 0
     for path in paths:
         before, after, old_size, new_size = optimise(path)
@@ -77,10 +80,18 @@ def main():
         change = "resized" if old_size != new_size else "recompressed"
         print(f"  {name:<40} {before/1048576:5.2f} -> {after/1048576:5.2f} MB  "
               f"({old_size[0]}x{old_size[1]} -> {new_size[0]}x{new_size[1]}, {change})")
+    return total_before, total_after
 
+
+def main():
+    b1, a1 = optimise_dir(FIG_DIR, "fig[0-1][0-9]_*.png", "MAIN MANUSCRIPT FIGURES")
+    print()
+    b2, a2 = optimise_dir(SUP_DIR, "figS[0-1][0-9]_*.png", "SUPPLEMENTARY FIGURES")
+
+    total_before, total_after = b1 + b2, a1 + a2
     saved = 100.0 * (1 - total_after / total_before) if total_before else 0.0
-    print(f"\n  Total: {total_before/1048576:.2f} MB -> {total_after/1048576:.2f} MB "
-          f"({saved:.0f} percent smaller)")
+    print(f"\n  Total across both sets: {total_before/1048576:.2f} MB -> "
+          f"{total_after/1048576:.2f} MB ({saved:.0f} percent smaller)")
 
 
 if __name__ == "__main__":

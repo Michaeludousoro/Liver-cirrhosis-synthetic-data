@@ -153,12 +153,6 @@ def plot_subgroup(results_df):
                "Logistic Regression": "#ef4444"}
 
     fig, axes = plt.subplots(1, 2, figsize=(8, 3.5))
-    fig.suptitle(
-        "Subgroup Consistency Analysis\n"
-        "AUC comparison: Scenario A (real only) vs Scenario C (equalised consensus)",
-        fontsize=12, fontweight="bold"
-    )
-
     for ax_idx, scenario_prefix in enumerate(["A", "C"]):
         sc_label = "A: Real only" if scenario_prefix == "A" else "C: Real + Consensus"
         ax = axes[ax_idx]
