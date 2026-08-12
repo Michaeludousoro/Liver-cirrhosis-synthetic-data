@@ -1,0 +1,16 @@
+Scenario,Classifier,n_train,Accuracy,F1,AUC
+A: Baseline 193 real,Random Forest,193,0.7831,0.7848,0.8479
+A: Baseline 193 real,Gradient Boosting,193,0.7831,0.7852,0.8776
+A: Baseline 193 real,Logistic Regression,193,0.7711,0.7735,0.8291
+F: +maskedVAE (trial-arm 36 only),Random Forest,536,0.7831,0.7841,0.8452
+F: +maskedVAE (trial-arm 36 only),Gradient Boosting,536,0.7952,0.7965,0.8285
+F: +maskedVAE (trial-arm 36 only),Logistic Regression,536,0.7349,0.737,0.7867
+G: +imputed (trial-arm 36 only),Random Forest,229,0.7831,0.7852,0.8555
+G: +imputed (trial-arm 36 only),Gradient Boosting,229,0.747,0.7496,0.8667
+G: +imputed (trial-arm 36 only),Logistic Regression,229,0.759,0.7615,0.84
+F: +maskedVAE (all 142 (mixed)),Random Forest,550,0.7831,0.7848,0.8552
+F: +maskedVAE (all 142 (mixed)),Gradient Boosting,550,0.8072,0.8081,0.8509
+F: +maskedVAE (all 142 (mixed)),Logistic Regression,550,0.7229,0.7257,0.8097
+G: +imputed (all 142 (mixed)),Random Forest,335,0.7952,0.797,0.8494
+G: +imputed (all 142 (mixed)),Gradient Boosting,335,0.759,0.7616,0.8545
+G: +imputed (all 142 (mixed)),Logistic Regression,335,0.7952,0.7973,0.8515

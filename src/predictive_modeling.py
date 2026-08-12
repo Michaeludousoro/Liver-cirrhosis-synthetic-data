@@ -25,9 +25,9 @@ Training scenarios
         The classifier is trained only on the real training patients.
         This is the reference point against which we compare augmented training.
 
-    Scenario B: Real plus filtered CTGAN
-        The real training patients are combined with the IQR-filtered CTGAN
-        synthetic records before training. We use CTGAN specifically here
+    Scenario B: Real plus filtered cGAN
+        The real training patients are combined with the IQR-filtered cGAN
+        synthetic records before training. We use cGAN specifically here
         because it achieved the best FID score among the three individual methods.
 
     Scenario C: Real plus consensus synthetic
@@ -40,8 +40,8 @@ Training scenarios
         augmented with SMOTE oversampling. This provides a classical
         interpolation baseline against the deep generative scenarios.
 
-    Scenario E: Synthetic data only (CTGAN filtered)
-        The classifier is trained exclusively on IQR-filtered CTGAN synthetic
+    Scenario E: Synthetic data only (cGAN filtered)
+        The classifier is trained exclusively on IQR-filtered cGAN synthetic
         records with no real training patients included. This scenario acts as
         the synthetic-only baseline and answers the question: how well does a
         model generalise to real patients when it has never seen any real
@@ -157,7 +157,7 @@ def run_all_scenarios(train_real, test_real, filtered_ctgan, consensus_df):
     ----------
     train_real     : real training patients (70 percent split)
     test_real      : real test patients (30 percent, never used for training)
-    filtered_ctgan : IQR-filtered CTGAN synthetic records for Scenario B
+    filtered_ctgan : IQR-filtered cGAN synthetic records for Scenario B
     consensus_df   : consensus synthetic records for Scenario C
 
     Returns
@@ -178,9 +178,9 @@ def run_all_scenarios(train_real, test_real, filtered_ctgan, consensus_df):
 
     scenarios = {
         "A: Baseline (real data only)":          train_real,
-        "B: Real data plus filtered CTGAN":      combine_and_clean(train_real, filtered_ctgan),
+        "B: Real data plus filtered cGAN":      combine_and_clean(train_real, filtered_ctgan),
         "C: Real data plus consensus synthetic":  combine_and_clean(train_real, consensus_df),
-        "E: Synthetic data only (CTGAN filtered)": filtered_ctgan,
+        "E: Synthetic data only (cGAN filtered)": filtered_ctgan,
     }
 
     all_records = []

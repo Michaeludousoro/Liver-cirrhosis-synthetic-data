@@ -1,7 +1,7 @@
 Classifier,Scenario_baseline,Scenario_compare,n10,n01,p_value,Significant
-Random Forest,A: Baseline,B: Real + CTGAN,2,2,1.0,No
+Random Forest,A: Baseline,B: Real + cGAN,2,2,1.0,No
 Random Forest,A: Baseline,C: Real + Consensus,7,3,0.3438,No
-Gradient Boosting,A: Baseline,B: Real + CTGAN,4,2,0.6875,No
+Gradient Boosting,A: Baseline,B: Real + cGAN,4,2,0.6875,No
 Gradient Boosting,A: Baseline,C: Real + Consensus,8,3,0.2266,No
-Logistic Regression,A: Baseline,B: Real + CTGAN,7,4,0.5488,No
+Logistic Regression,A: Baseline,B: Real + cGAN,7,4,0.5488,No
 Logistic Regression,A: Baseline,C: Real + Consensus,4,5,1.0,No

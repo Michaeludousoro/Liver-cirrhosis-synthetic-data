@@ -122,7 +122,7 @@ def compute_all_fids(real_df, filtered_gan, filtered_ctgan,
     ----------
     real_df        : real training patient records
     filtered_gan   : IQR-filtered GAN synthetic records
-    filtered_ctgan : IQR-filtered CTGAN synthetic records
+    filtered_ctgan : IQR-filtered cGAN synthetic records
     filtered_tvae  : IQR-filtered TVAE synthetic records
     consensus_df   : consensus synthetic records
     numeric_cols   : continuous features to use (default: all 11 standard ones)
@@ -133,7 +133,7 @@ def compute_all_fids(real_df, filtered_gan, filtered_ctgan,
     """
     datasets = {
         "GAN (filtered)":   filtered_gan,
-        "CTGAN (filtered)": filtered_ctgan,
+        "cGAN (filtered)": filtered_ctgan,
         "TVAE (filtered)":  filtered_tvae,
         "Consensus":        consensus_df,
     }

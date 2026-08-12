@@ -20,20 +20,20 @@ DATA PREPARATION
 SYNTHETIC DATA GENERATION
 
   GAN       generated 500  after IQR filter 331 kept (66.2% retained)
-  CTGAN     generated 500  after IQR filter 292 kept (58.4% retained)
+  cGAN      data not found
   TVAE      generated 500  after IQR filter 499 kept (99.8% retained)
 
 CONSENSUS VOTING
 
   Total consensus records         : 787
   Records from GAN     : 261  (33.2%)
-  Records from CTGAN   : 234  (29.7%)
+  Records from cGAN    : 234  (29.7%)
   Records from TVAE    : 292  (37.1%)
 
 FID SCORES (lower is better)
 
   GAN (filtered)             FID = 0.0995  (n = 331)
-  CTGAN (filtered)           FID = 0.0724  (n = 292)
+  cGAN (filtered)            FID = 0.0724  (n = 292)
   TVAE (filtered)            FID = 0.2280  (n = 499)
   Consensus                  FID = 0.0809  (n = 787)
 
@@ -42,15 +42,15 @@ PREDICTIVE UTILITY (evaluated on held-out real test set)
   A: Baseline (real data only)            Random Forest           Accuracy 0.7831  F1 0.7848  AUC 0.8479
   A: Baseline (real data only)            Gradient Boosting       Accuracy 0.7831  F1 0.7852  AUC 0.8776
   A: Baseline (real data only)            Logistic Regression     Accuracy 0.7711  F1 0.7735  AUC 0.8291
-  B: Real data plus filtered CTGAN        Random Forest           Accuracy 0.7831  F1 0.7848  AUC 0.8491
-  B: Real data plus filtered CTGAN        Gradient Boosting       Accuracy 0.7590  F1 0.7616  AUC 0.8448
-  B: Real data plus filtered CTGAN        Logistic Regression     Accuracy 0.7349  F1 0.7377  AUC 0.8345
+  B: Real data plus filtered cGAN         Random Forest           Accuracy 0.7831  F1 0.7848  AUC 0.8491
+  B: Real data plus filtered cGAN         Gradient Boosting       Accuracy 0.7590  F1 0.7616  AUC 0.8448
+  B: Real data plus filtered cGAN         Logistic Regression     Accuracy 0.7349  F1 0.7377  AUC 0.8345
   C: Real data plus consensus synthetic   Random Forest           Accuracy 0.7349  F1 0.7375  AUC 0.8294
   C: Real data plus consensus synthetic   Gradient Boosting       Accuracy 0.7229  F1 0.7258  AUC 0.8376
   C: Real data plus consensus synthetic   Logistic Regression     Accuracy 0.7831  F1 0.7854  AUC 0.8503
-  E: Synthetic data only (CTGAN filtered  Random Forest           Accuracy 0.7108  F1 0.7126  AUC 0.823
-  E: Synthetic data only (CTGAN filtered  Gradient Boosting       Accuracy 0.6265  F1 0.6281  AUC 0.6842
-  E: Synthetic data only (CTGAN filtered  Logistic Regression     Accuracy 0.6627  F1 0.6634  AUC 0.8376
+  E: Synthetic data only (cGAN filtered)  Random Forest           Accuracy 0.7108  F1 0.7126  AUC 0.823
+  E: Synthetic data only (cGAN filtered)  Gradient Boosting       Accuracy 0.6265  F1 0.6281  AUC 0.6842
+  E: Synthetic data only (cGAN filtered)  Logistic Regression     Accuracy 0.6627  F1 0.6634  AUC 0.8376
 
 STATISTICAL TESTS
 

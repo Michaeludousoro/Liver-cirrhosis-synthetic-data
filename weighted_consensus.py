@@ -6,23 +6,23 @@ This script compares four consensus approaches:
 
     1. Original flat voting at tolerance 5.0 (what the paper currently does)
     2. Weighted voting at tolerance 5.0 with threshold 0.5 (same behaviour as flat)
-    3. Weighted voting at tolerance 5.0 with threshold 0.6 (requires CTGAN to confirm)
+    3. Weighted voting at tolerance 5.0 with threshold 0.6 (requires cGAN to confirm)
     4. Weighted voting at tolerance 5.0 with threshold 0.6 plus TVAE downsampled
        to 210 records to match the other pool sizes
 
 For each approach, the script reports:
     - How many records are accepted
-    - What percentage came from GAN, CTGAN, and TVAE
+    - What percentage came from GAN, cGAN, and TVAE
     - The class balance of accepted records (percent deceased)
     - The FID score versus real training patients
 
 Weights are derived from inverse FID scores:
     GAN   FID 0.0972  ->  weight 36.5 percent
-    CTGAN FID 0.0751  ->  weight 47.3 percent
+    cGAN FID 0.0751  ->  weight 47.3 percent
     TVAE  FID 0.2194  ->  weight 16.2 percent
 
 At weighted threshold 0.6, GAN + TVAE (0.527) is below the cutoff, so
-CTGAN must always be one of the two confirming models. This gives the best
+cGAN must always be one of the two confirming models. This gives the best
 quality model a gating role in the consensus.
 """
 
@@ -45,9 +45,9 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # FID-derived quality weights (lower FID = higher weight)
-WEIGHTS = {"GAN": 0.3653, "CTGAN": 0.4728, "TVAE": 0.1618}
+WEIGHTS = {"GAN": 0.3653, "cGAN": 0.4728, "TVAE": 0.1618}
 
-FID_SCORES = {"GAN": 0.0972, "CTGAN": 0.0751, "TVAE": 0.2194}
+FID_SCORES = {"GAN": 0.0972, "cGAN": 0.0751, "TVAE": 0.2194}
 
 
 def run_flat_consensus(filtered_gan, filtered_ctgan, filtered_tvae,
@@ -58,7 +58,7 @@ def run_flat_consensus(filtered_gan, filtered_ctgan, filtered_tvae,
     """
     methods = {
         "GAN":   filtered_gan.values.astype(float),
-        "CTGAN": filtered_ctgan.values.astype(float),
+        "cGAN": filtered_ctgan.values.astype(float),
         "TVAE":  filtered_tvae.values.astype(float),
     }
     col_names    = filtered_gan.columns.tolist()
@@ -102,12 +102,12 @@ def run_weighted_consensus(filtered_gan, filtered_ctgan, filtered_tvae,
     At threshold 0.5, any two models confirming is sufficient
     (minimum two-model weight sum is GAN + TVAE = 0.527).
 
-    At threshold 0.6, CTGAN must be one of the confirming models
+    At threshold 0.6, cGAN must be one of the confirming models
     (GAN + TVAE = 0.527 < 0.6 fails).
     """
     methods = {
         "GAN":   filtered_gan.values.astype(float),
-        "CTGAN": filtered_ctgan.values.astype(float),
+        "cGAN": filtered_ctgan.values.astype(float),
         "TVAE":  filtered_tvae.values.astype(float),
     }
     col_names    = filtered_gan.columns.tolist()
@@ -147,18 +147,18 @@ def summarise(label, consensus_df, source_counts, train_df):
     n = len(consensus_df)
     if n == 0:
         return {"Approach": label, "Records": 0,
-                "GAN%": 0, "CTGAN%": 0, "TVAE%": 0,
+                "GAN%": 0, "cGAN%": 0, "TVAE%": 0,
                 "Deceased%": None, "FID": None}
 
     total_pre = sum(source_counts.values())
     gan_pct   = round(source_counts.get("GAN",   0) / total_pre * 100, 1)
-    ctgan_pct = round(source_counts.get("CTGAN", 0) / total_pre * 100, 1)
+    ctgan_pct = round(source_counts.get("cGAN", 0) / total_pre * 100, 1)
     tvae_pct  = round(source_counts.get("TVAE",  0) / total_pre * 100, 1)
     dec_pct   = round(consensus_df["Status"].mean() * 100, 1) if "Status" in consensus_df.columns else None
     fid       = round(compute_fid(train_df, consensus_df), 4)
 
     return {"Approach": label, "Records": n,
-            "GAN%": gan_pct, "CTGAN%": ctgan_pct, "TVAE%": tvae_pct,
+            "GAN%": gan_pct, "cGAN%": ctgan_pct, "TVAE%": tvae_pct,
             "Deceased%": dec_pct, "FID": fid}
 
 
@@ -168,8 +168,8 @@ def main():
     filtered_ctgan = pd.read_csv(os.path.join(DATA_DIR, "filtered_ctgan.csv"))
     filtered_tvae  = pd.read_csv(os.path.join(DATA_DIR, "filtered_tvae.csv"))
 
-    print(f"Loaded: GAN {len(filtered_gan)} | CTGAN {len(filtered_ctgan)} | TVAE {len(filtered_tvae)}")
-    print(f"Quality weights: GAN {WEIGHTS['GAN']*100:.1f}%  CTGAN {WEIGHTS['CTGAN']*100:.1f}%  TVAE {WEIGHTS['TVAE']*100:.1f}%")
+    print(f"Loaded: GAN {len(filtered_gan)} | cGAN {len(filtered_ctgan)} | TVAE {len(filtered_tvae)}")
+    print(f"Quality weights: GAN {WEIGHTS['GAN']*100:.1f}%  cGAN {WEIGHTS['cGAN']*100:.1f}%  TVAE {WEIGHTS['TVAE']*100:.1f}%")
     print()
 
     rows = []
@@ -184,8 +184,8 @@ def main():
     df2, sc2 = run_weighted_consensus(filtered_gan, filtered_ctgan, filtered_tvae, 5.0, 0.5)
     rows.append(summarise("2. Weighted vote (tol 5.0, wt-thr 0.5)", df2, sc2, train_df))
 
-    # Approach 3: weighted at 5.0, threshold 0.6 (requires CTGAN to confirm)
-    print("Running Approach 3: weighted vote at 5.0, threshold 0.6 (CTGAN must confirm) ...")
+    # Approach 3: weighted at 5.0, threshold 0.6 (requires cGAN to confirm)
+    print("Running Approach 3: weighted vote at 5.0, threshold 0.6 (cGAN must confirm) ...")
     df3, sc3 = run_weighted_consensus(filtered_gan, filtered_ctgan, filtered_tvae, 5.0, 0.6)
     rows.append(summarise("3. Weighted vote (tol 5.0, wt-thr 0.6)", df3, sc3, train_df))
 
@@ -204,13 +204,13 @@ def main():
     print("QUALITY-WEIGHTED CONSENSUS COMPARISON")
     print("=" * 85)
     print()
-    hdr = f"{'Approach':<45} {'Records':<9} {'GAN%':<7} {'CTGAN%':<9} {'TVAE%':<8} {'Dead%':<7} {'FID':<8}"
+    hdr = f"{'Approach':<45} {'Records':<9} {'GAN%':<7} {'cGAN%':<9} {'TVAE%':<8} {'Dead%':<7} {'FID':<8}"
     print(hdr)
     print("-" * 85)
     for _, r in results_df.iterrows():
         dec = f"{r['Deceased%']:.1f}" if r["Deceased%"] is not None else "N/A"
         fid = f"{r['FID']:.4f}" if r["FID"] is not None else "N/A"
-        print(f"{r['Approach']:<45} {int(r['Records']):<9} {r['GAN%']:<7} {r['CTGAN%']:<9} {r['TVAE%']:<8} {dec:<7} {fid:<8}")
+        print(f"{r['Approach']:<45} {int(r['Records']):<9} {r['GAN%']:<7} {r['cGAN%']:<9} {r['TVAE%']:<8} {dec:<7} {fid:<8}")
 
     print()
     print("Key findings:")
@@ -224,7 +224,7 @@ def main():
     print(f"  consensus records despite having the worst FID score ({FID_SCORES['TVAE']}).")
     print()
     print(f"  With weighted voting at threshold 0.6 (Approach 3), TVAE drops to")
-    print(f"  {r3['TVAE%']}% and CTGAN rises to {r3['CTGAN%']}% because CTGAN must always")
+    print(f"  {r3['TVAE%']}% and cGAN rises to {r3['cGAN%']}% because cGAN must always")
     print(f"  be one of the two confirming models. FID improves from {r1['FID']} to {r3['FID']}.")
     print()
     if r4["Records"] > 0:
@@ -245,7 +245,7 @@ def plot_comparison(results_df):
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
     fig.suptitle(
         "Quality-Weighted Consensus Comparison\n"
-        "Flat voting vs. quality-weighted voting (CTGAN as gating model)",
+        "Flat voting vs. quality-weighted voting (cGAN as gating model)",
         fontsize=12, fontweight="bold"
     )
 
@@ -254,7 +254,7 @@ def plot_comparison(results_df):
 
     ax1 = axes[0]
     bars_gan   = ax1.bar(x - width, valid["GAN%"],   width, label="GAN",   color="#ef4444")
-    bars_ctgan = ax1.bar(x,         valid["CTGAN%"], width, label="CTGAN", color="#3b82f6")
+    bars_ctgan = ax1.bar(x,         valid["cGAN%"], width, label="cGAN", color="#3b82f6")
     bars_tvae  = ax1.bar(x + width, valid["TVAE%"],  width, label="TVAE",  color="#10b981")
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels, rotation=15, ha="right", fontsize=9)
@@ -288,7 +288,7 @@ def plot_comparison(results_df):
     plt.tight_layout()
     plt.savefig(
         os.path.join(FIGURES_DIR, "weighted_consensus_comparison.png"),
-        dpi=300, bbox_inches="tight"
+        dpi=300, bbox_inches="tight", pad_inches=0.05
     )
     plt.close()
 

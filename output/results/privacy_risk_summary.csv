@@ -1,5 +1,5 @@
 Method,Synthetic records,Mean dist to real,Min dist to real,Near-duplicate (n),Near-duplicate (%)
 GAN (filtered),331,2.2332,0.9999,24,7.3
-CTGAN (filtered),292,2.3406,0.7474,28,9.6
+cGAN (filtered),292,2.3406,0.7474,28,9.6
 TVAE (filtered),499,1.6004,1.0045,178,35.7
 Consensus,787,1.9076,0.7474,166,21.1

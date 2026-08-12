@@ -33,6 +33,22 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# Print-safe sizing: matplotlib points are relative to the figure canvas, so a
+# wide canvas placed at \\textwidth by LaTeX shrinks every label. Sizes here are
+# about twice their intended printed size so they land near 8 pt on the page.
+import matplotlib.pyplot as _plt
+_S = 2.0
+_plt.rcParams.update({
+    "font.family": "DejaVu Sans", "font.size": 8.5*_S, "axes.titlesize": 9.5*_S,
+    "axes.labelsize": 8.5*_S, "xtick.labelsize": 7.5*_S, "ytick.labelsize": 7.5*_S,
+    "legend.fontsize": 7.5*_S, "text.color": "black", "axes.labelcolor": "black",
+    "xtick.color": "black", "ytick.color": "black", "axes.edgecolor": "black",
+    "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+    "axes.linewidth": 0.8*_S, "lines.linewidth": 1.4*_S, "xtick.major.width": 0.8*_S,
+    "ytick.major.width": 0.8*_S, "patch.linewidth": 0.6*_S, "savefig.dpi": 300,
+})
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
@@ -210,27 +226,27 @@ def run_dp_estimation(n_train=193, n_epochs=300, batch_size=32, delta=1e-5):
 
 
 def plot_results(perturb_df, dp_df):
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5.5))
     ax1 = axes[0]
     ax1.plot(perturb_df["sigma"], perturb_df["near_dup_rate_pct"],
              color="#ef4444", linewidth=2.5, marker="o", markersize=8)
     ax1.axhline(5.0, color="black", linestyle="--", linewidth=1.2,
-                label="5% near-duplicate target")
-    ax1.set_xlabel("Gaussian noise sigma (feature std units)", fontsize=11)
-    ax1.set_ylabel("Near-duplicate rate (%)", fontsize=11)
-    ax1.set_title("Privacy: near-duplicate rate\nvs output noise level", fontsize=11)
-    ax1.legend(fontsize=9)
+                label="5% target")
+    ax1.set_xlabel("Noise $\\sigma$ (feature SD)", fontsize=11*_S)
+    ax1.set_ylabel("Near-duplicate rate (%)", fontsize=11*_S)
+    ax1.set_title("Privacy: near-duplicate rate\nvs output noise level", fontsize=11*_S)
+    ax1.legend(fontsize=9*_S)
     ax1.grid(True, alpha=0.3)
 
     ax2 = axes[1]
     ax2.plot(perturb_df["sigma"], perturb_df["FID"],
              color="#3b82f6", linewidth=2.5, marker="s", markersize=8)
     ax2.axhline(0.0862, color="#059669", linestyle="--", linewidth=1.2,
-                label="Equalised consensus FID (0.0862)")
-    ax2.set_xlabel("Gaussian noise sigma (feature std units)", fontsize=11)
-    ax2.set_ylabel("FID score (lower = better quality)", fontsize=11)
-    ax2.set_title("Data quality: FID score\nvs output noise level", fontsize=11)
-    ax2.legend(fontsize=9)
+                label="Consensus FID 0.0862")
+    ax2.set_xlabel("Noise $\\sigma$ (feature SD)", fontsize=11*_S)
+    ax2.set_ylabel("FID score (lower is better)", fontsize=11*_S)
+    ax2.set_title("Data quality: FID score\nvs output noise level", fontsize=11*_S)
+    ax2.legend(fontsize=9*_S)
     ax2.grid(True, alpha=0.3)
 
     ax3 = axes[2]
@@ -238,19 +254,19 @@ def plot_results(perturb_df, dp_df):
     ax3.plot(valid_dp["noise_multiplier"], valid_dp["epsilon"],
              color="#7c3aed", linewidth=2.5, marker="^", markersize=8)
     ax3.axhline(3.0, color="#f59e0b", linestyle="--", linewidth=1.2,
-                label="epsilon = 3 (weak guarantee threshold)")
+                label=r"$\varepsilon=3$ (weak)")
     ax3.axhline(1.0, color="#059669", linestyle="--", linewidth=1.2,
-                label="epsilon = 1 (strong guarantee threshold)")
-    ax3.set_xlabel("DP-SGD noise multiplier", fontsize=11)
-    ax3.set_ylabel("Privacy budget epsilon (lower = more private)", fontsize=11)
-    ax3.set_title("DP-SGD: estimated epsilon\nvs noise multiplier", fontsize=11)
-    ax3.legend(fontsize=9)
+                label=r"$\varepsilon=1$ (strong)")
+    ax3.set_xlabel("DP-SGD noise multiplier", fontsize=11*_S)
+    ax3.set_ylabel("Privacy budget $\\varepsilon$", fontsize=11*_S)
+    ax3.set_title("DP-SGD: estimated epsilon\nvs noise multiplier", fontsize=11*_S)
+    ax3.legend(fontsize=9*_S)
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 30)
 
     plt.tight_layout()
     out = os.path.join(FIGURES, "privacy_enhancement.png")
-    plt.savefig(out, dpi=300, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight", pad_inches=0.05)
     plt.close()
     print(f"\nFigure saved: {out}")
 

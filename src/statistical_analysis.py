@@ -122,7 +122,7 @@ def kolmogorov_smirnov_tests(real_df, synthetic_dict, cols=None):
     ----------
     real_df        : real training DataFrame
     synthetic_dict : dictionary mapping method names to synthetic DataFrames,
-                     for example {'GAN (filtered)': df, 'CTGAN (filtered)': df}
+                     for example {'GAN (filtered)': df, 'cGAN (filtered)': df}
     cols           : continuous features to test (default: all 11 standard ones)
 
     Returns

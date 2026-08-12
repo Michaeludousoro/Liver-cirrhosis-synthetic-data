@@ -19,7 +19,7 @@ Figures produced
               This shows the generator and discriminator loss over training
               epochs, which helps the reader assess model convergence.
 
-    Figure 1: FID score bar chart comparing GAN, CTGAN, TVAE, and Consensus.
+    Figure 1: FID score bar chart comparing GAN, cGAN, TVAE, and Consensus.
               Lower bars indicate better fidelity to the real data distribution.
 
     Figure 2: IQR filtering effect on bilirubin distributions.
@@ -60,6 +60,10 @@ import numpy as np
 import pandas as pd
 
 import matplotlib
+# Force the non-interactive backend. _save_figure() calls plt.show(), which
+# blocks indefinitely under a GUI backend when the pipeline is run headless,
+# and that silently hangs master_runner.py partway through figure generation.
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
@@ -68,15 +72,45 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIG_DIR  = os.path.join(BASE_DIR, "output", "figures")
 os.makedirs(FIG_DIR, exist_ok=True)
 
-# Global style settings for all figures
+# Global style settings for all figures.
+#
+# Font sizes are chosen for PRINT, not for the notebook. Matplotlib points are
+# relative to the figure canvas, so a figure built at 14 inches wide and placed
+# by LaTeX at \textwidth (7.16 in) is scaled down by about 2x, halving every
+# label. The sizes below are therefore roughly twice their intended printed
+# size: a 17 pt label here reaches the reader at about 8.5 pt, which matches the
+# caption text around it. See print_style.py for the full derivation.
+#
+# The earlier settings (11 pt base on canvases up to 18 inches wide) printed at
+# 2 to 4 pt and were illegible on A4.
+_PRINT_SCALE = 2.0
+
 plt.rcParams.update({
     "font.family":       "DejaVu Sans",
-    "font.size":         11,
-    "axes.titlesize":    13,
-    "axes.labelsize":    11,
-    "xtick.labelsize":   9,
-    "ytick.labelsize":   9,
-    "legend.fontsize":   9,
+    "font.size":         8.5 * _PRINT_SCALE,
+    "axes.titlesize":    9.5 * _PRINT_SCALE,
+    "axes.labelsize":    8.5 * _PRINT_SCALE,
+    "xtick.labelsize":   7.5 * _PRINT_SCALE,
+    "ytick.labelsize":   7.5 * _PRINT_SCALE,
+    "legend.fontsize":   7.5 * _PRINT_SCALE,
+
+    # High contrast for print: black text on a white panel.
+    "text.color":        "black",
+    "axes.labelcolor":   "black",
+    "xtick.color":       "black",
+    "ytick.color":       "black",
+    "axes.edgecolor":    "black",
+    "figure.facecolor":  "white",
+    "axes.facecolor":    "white",
+    "savefig.facecolor": "white",
+
+    # Strokes shrink with the figure too, so scale them as well.
+    "axes.linewidth":    0.8 * _PRINT_SCALE,
+    "lines.linewidth":   1.4 * _PRINT_SCALE,
+    "xtick.major.width": 0.8 * _PRINT_SCALE,
+    "ytick.major.width": 0.8 * _PRINT_SCALE,
+    "patch.linewidth":   0.6 * _PRINT_SCALE,
+
     "figure.dpi":        100,
     "savefig.dpi":       300,
     "axes.spines.top":   False,
@@ -87,7 +121,7 @@ plt.rcParams.update({
 METHOD_COLORS = {
     "Real":      "#505050",
     "GAN":       "#0066FF",
-    "CTGAN":     "#FF4500",
+    "cGAN":     "#FF4500",
     "TVAE":      "#00B43C",
     "Consensus": "#9900CC",
 }
@@ -97,7 +131,7 @@ SCENARIO_COLORS = ["#0052CC", "#E63800", "#008C38"]
 def _save_figure(fig, filename):
     """Save a figure to the output figures directory, display it inline, then close it."""
     path = os.path.join(FIG_DIR, filename)
-    fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.05)
     plt.show()
     plt.close(fig)
     print(f"  Figure saved: {path}")
@@ -107,7 +141,7 @@ def plot_training_losses(gan_model, ctgan_model, tvae_model):
     """
     Figure 0: Training loss curves for all three generative models.
 
-    For the GAN and CTGAN we plot both the generator and discriminator loss
+    For the GAN and cGAN we plot both the generator and discriminator loss
     on the same axes. An ideal training run shows the two losses converging
     toward a stable equilibrium. For the TVAE we plot the total ELBO loss,
     which should decrease smoothly over training.
@@ -125,7 +159,7 @@ def plot_training_losses(gan_model, ctgan_model, tvae_model):
     ax = axes[1]
     ax.plot(ctgan_model.g_losses, label="Generator",     color="#FF4500", linewidth=1.8)
     ax.plot(ctgan_model.d_losses, label="Discriminator", color="#CC0000", linewidth=1.8)
-    ax.set_title("CTGAN Training Loss")
+    ax.set_title("cGAN Training Loss")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Loss")
     ax.legend()
@@ -170,7 +204,7 @@ def plot_fid_comparison(fid_df):
             ha="center", va="bottom", fontsize=9
         )
 
-    ax.set_ylabel("FID Score (lower means more similar to real data)")
+    ax.set_ylabel("FID score (lower is better)")
     ax.set_title("Figure 1: Tabular FID Score Comparison")
     ax.tick_params(axis="x", rotation=20)
     fig.tight_layout()
@@ -191,8 +225,8 @@ def plot_iqr_filtering(real_df, raw_synthetics, filtered_synthetics,
     Parameters
     ----------
     real_df             : real training DataFrame
-    raw_synthetics      : dictionary with keys GAN, CTGAN, TVAE (unfiltered)
-    filtered_synthetics : dictionary with keys GAN, CTGAN, TVAE (after IQR filter)
+    raw_synthetics      : dictionary with keys GAN, cGAN, TVAE (unfiltered)
+    filtered_synthetics : dictionary with keys GAN, cGAN, TVAE (after IQR filter)
     col                 : the feature column to visualise
     """
     methods = list(raw_synthetics.keys())
@@ -237,7 +271,7 @@ def plot_distribution_comparison(real_df, synthetic_dict, cols=None):
     Figure 3: Distribution comparison for six key clinical features.
 
     For each feature we overlay the real distribution with all four synthetic
-    distributions (GAN, CTGAN, TVAE, Consensus). This gives a comprehensive
+    distributions (GAN, cGAN, TVAE, Consensus). This gives a comprehensive
     visual impression of how well each method reproduces the clinical data.
 
     Parameters
@@ -330,7 +364,7 @@ def plot_consensus_distribution(source_counts):
 
     Parameters
     ----------
-    source_counts : dictionary from run_consensus, e.g. {'GAN': 45, 'CTGAN': 60, 'TVAE': 95}
+    source_counts : dictionary from run_consensus, e.g. {'GAN': 45, 'cGAN': 60, 'TVAE': 95}
     """
     labels = list(source_counts.keys())
     counts = [source_counts[k] for k in labels]
@@ -473,7 +507,7 @@ def plot_all_metrics(results_df):
     Figure 8: Line plots of all five metrics across three training scenarios.
 
     Each line represents one classifier. The x-axis shows the three scenarios
-    labelled A (baseline), B (real plus CTGAN), and C (real plus consensus).
+    labelled A (baseline), B (real plus cGAN), and C (real plus consensus).
     Upward-trending lines from A to B or C indicate that augmentation improved
     performance for that metric and classifier combination.
 
@@ -540,7 +574,7 @@ def plot_pipeline_flowchart():
         (5.0, 8.0, "Complete-Case Filter\nDrop all rows with missing values",  "#505050"),
         (5.0, 6.8, "Encode features, scale to [0,1], split 70/30",             "#505050"),
         (2.5, 5.5, "Vanilla GAN\n500 samples",  "#505050"),
-        (5.0, 5.5, "CTGAN\n500 samples",         "#505050"),
+        (5.0, 5.5, "cGAN\n500 samples",         "#505050"),
         (7.5, 5.5, "TVAE\n500 samples",          "#505050"),
         (2.5, 4.3, "IQR Filter",                 "#505050"),
         (5.0, 4.3, "IQR Filter",                 "#505050"),

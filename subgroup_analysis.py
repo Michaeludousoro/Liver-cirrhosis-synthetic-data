@@ -28,6 +28,22 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Print-safe sizing: matplotlib points are relative to the figure canvas, so a
+# wide canvas placed at \\textwidth by LaTeX shrinks every label. Sizes here are
+# about twice their intended printed size so they land near 8 pt on the page.
+import matplotlib.pyplot as _plt
+_S = 2.0
+_plt.rcParams.update({
+    "font.family": "DejaVu Sans", "font.size": 8.5*_S, "axes.titlesize": 9.5*_S,
+    "axes.labelsize": 8.5*_S, "xtick.labelsize": 7.5*_S, "ytick.labelsize": 7.5*_S,
+    "legend.fontsize": 7.5*_S, "text.color": "black", "axes.labelcolor": "black",
+    "xtick.color": "black", "ytick.color": "black", "axes.edgecolor": "black",
+    "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+    "axes.linewidth": 0.8*_S, "lines.linewidth": 1.4*_S, "xtick.major.width": 0.8*_S,
+    "ytick.major.width": 0.8*_S, "patch.linewidth": 0.6*_S, "savefig.dpi": 300,
+})
+
+
 from sklearn.ensemble       import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model   import LogisticRegression
 from sklearn.metrics        import roc_auc_score
@@ -177,17 +193,17 @@ def plot_subgroup(results_df):
         ax.set_xticks(x)
         sg_labels = [f"{s}\n(n={results_df[results_df['Subgroup']==s]['n'].values[0]})"
                      for s in subgroups]
-        ax.set_xticklabels(sg_labels, fontsize=9)
-        ax.set_ylabel("AUC", fontsize=11)
+        ax.set_xticklabels(sg_labels, fontsize=9*_S)
+        ax.set_ylabel("AUC", fontsize=11*_S)
         sc_title = "Scenario A: Real data only" if scenario_prefix == "A" else "Scenario C: Real + Consensus"
-        ax.set_title(sc_title, fontsize=11)
+        ax.set_title(sc_title, fontsize=11*_S)
         ax.set_ylim(0, 1.05)
-        ax.legend(fontsize=9)
+        ax.legend(fontsize=9*_S)
         ax.grid(True, alpha=0.3, axis="y")
 
     plt.tight_layout()
     out = os.path.join(FIGURES, "subgroup_analysis.png")
-    plt.savefig(out, dpi=300, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight", pad_inches=0.05)
     plt.close()
     print(f"Figure saved: {out}")
 

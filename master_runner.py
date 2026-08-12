@@ -18,7 +18,7 @@ training machine learning models reliably.
 Our goal is to investigate whether synthetic data augmentation can improve
 the performance of predictive models trained on this limited real data. We
 compare three generative approaches: a standard Vanilla GAN, a Conditional
-Tabular GAN (CTGAN), and a Tabular Variational Autoencoder (TVAE).
+Tabular GAN (cGAN), and a Tabular Variational Autoencoder (TVAE).
 
 We contribute three methodological innovations:
 
@@ -65,7 +65,7 @@ Pipeline steps
 
 How to run
 ----------
-    Full run with paper-quality training (500 epochs for GAN, 300 for CTGAN and TVAE)
+    Full run with paper-quality training (500 epochs for GAN, 300 for cGAN and TVAE)
 
         python master_runner.py
 
@@ -100,7 +100,7 @@ from src.data_loader import (
     save_data, save_scaler, post_process_synthetic,
     ALL_FEATURE_COLS, TARGET_COL, CONTINUOUS_COLS,
 )
-from src.synthetic_generator import VanillaGAN, CTGAN, TVAE, generate_synthetic
+from src.synthetic_generator import VanillaGAN, cGAN, TVAE, generate_synthetic
 from src.iqr_filter          import filter_all, filter_summary_df
 from src.consensus_voting    import run_consensus, consensus_summary_df
 from src.fid_calculator      import compute_all_fids
@@ -191,8 +191,8 @@ def main(args):
     save_data(synthetic_gan, "synthetic_gan.csv")
     print(f"  Vanilla GAN generated {len(synthetic_gan)} synthetic records")
 
-    print(f"\n  Training CTGAN for {args.epochs_ctgan} epochs ...")
-    ctgan = CTGAN(
+    print(f"\n  Training cGAN for {args.epochs_ctgan} epochs ...")
+    ctgan = cGAN(
         latent_dim=100,
         epochs=args.epochs_ctgan,
         batch_size=32,
@@ -205,7 +205,7 @@ def main(args):
     synthetic_ctgan = generate_synthetic(ctgan, args.n_syn, scaler, col_order,
                                           post_process_synthetic)
     save_data(synthetic_ctgan, "synthetic_ctgan.csv")
-    print(f"  CTGAN generated {len(synthetic_ctgan)} synthetic records")
+    print(f"  cGAN generated {len(synthetic_ctgan)} synthetic records")
 
     print(f"\n  Training TVAE for {args.epochs_tvae} epochs ...")
     tvae = TVAE(
@@ -227,13 +227,13 @@ def main(args):
 
     raw_synthetics = {
         "GAN":   synthetic_gan,
-        "CTGAN": synthetic_ctgan,
+        "cGAN": synthetic_ctgan,
         "TVAE":  synthetic_tvae,
     }
     iqr_result = filter_all(raw_synthetics, train_df)
 
     filtered_gan   = iqr_result["filtered"]["GAN"]
-    filtered_ctgan = iqr_result["filtered"]["CTGAN"]
+    filtered_ctgan = iqr_result["filtered"]["cGAN"]
     filtered_tvae  = iqr_result["filtered"]["TVAE"]
 
     save_data(filtered_gan,   "filtered_gan.csv")
@@ -251,7 +251,7 @@ def main(args):
     # Paper method: flat consensus (both other models must agree) at tolerance
     # 5.0 in standardised space. Before voting, the TVAE pool is downsampled to
     # the size of the smallest adversarial pool so the higher-fidelity GAN and
-    # CTGAN are not swamped by the far larger TVAE pool (equalisation).
+    # cGAN are not swamped by the far larger TVAE pool (equalisation).
     n_adv_min = min(len(filtered_gan), len(filtered_ctgan))
     tvae_equalised = filtered_tvae.sample(
         n=min(n_adv_min, len(filtered_tvae)), random_state=args.seed
@@ -267,9 +267,9 @@ def main(args):
     if len(consensus_df) == 0:
         print("  No consensus found at tolerance 5.0.")
         print("  This typically means the models were trained for too few epochs.")
-        print("  Substituting filtered CTGAN data as a fallback for Scenario C.")
+        print("  Substituting filtered cGAN data as a fallback for Scenario C.")
         consensus_df  = filtered_ctgan.copy()
-        source_counts = {"CTGAN": len(filtered_ctgan), "GAN": 0, "TVAE": 0}
+        source_counts = {"cGAN": len(filtered_ctgan), "GAN": 0, "TVAE": 0}
 
     # Save under both names: this equalised set is the consensus the paper uses.
     save_data(consensus_df, "consensus.csv")
@@ -308,7 +308,7 @@ def main(args):
 
     synthetic_dict = {
         "GAN (filtered)":   filtered_gan,
-        "CTGAN (filtered)": filtered_ctgan,
+        "cGAN (filtered)": filtered_ctgan,
         "TVAE (filtered)":  filtered_tvae,
         "Consensus":        consensus_df,
     }
@@ -333,13 +333,13 @@ def main(args):
     print("  Generating Figure 2: IQR filtering effect ...")
     plot_iqr_filtering(
         train_df, raw_synthetics,
-        {"GAN": filtered_gan, "CTGAN": filtered_ctgan, "TVAE": filtered_tvae}
+        {"GAN": filtered_gan, "cGAN": filtered_ctgan, "TVAE": filtered_tvae}
     )
 
     print("  Generating Figure 3: feature distribution comparison ...")
     plot_distribution_comparison(train_df, {
         "GAN":       filtered_gan,
-        "CTGAN":     filtered_ctgan,
+        "cGAN":     filtered_ctgan,
         "TVAE":      filtered_tvae,
         "Consensus": consensus_df,
     })
@@ -493,7 +493,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--epochs_ctgan", type=int, default=300,
-        help="Training epochs for CTGAN (default 300)"
+        help="Training epochs for cGAN (default 300)"
     )
     parser.add_argument(
         "--epochs_tvae", type=int, default=300,

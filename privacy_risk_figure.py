@@ -41,6 +41,22 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# Print-safe sizing: matplotlib points are relative to the figure canvas, so a
+# wide canvas placed at \\textwidth by LaTeX shrinks every label. Sizes here are
+# about twice their intended printed size so they land near 8 pt on the page.
+import matplotlib.pyplot as _plt
+_S = 2.0
+_plt.rcParams.update({
+    "font.family": "DejaVu Sans", "font.size": 8.5*_S, "axes.titlesize": 9.5*_S,
+    "axes.labelsize": 8.5*_S, "xtick.labelsize": 7.5*_S, "ytick.labelsize": 7.5*_S,
+    "legend.fontsize": 7.5*_S, "text.color": "black", "axes.labelcolor": "black",
+    "xtick.color": "black", "ytick.color": "black", "axes.edgecolor": "black",
+    "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+    "axes.linewidth": 0.8*_S, "lines.linewidth": 1.4*_S, "xtick.major.width": 0.8*_S,
+    "ytick.major.width": 0.8*_S, "patch.linewidth": 0.6*_S, "savefig.dpi": 300,
+})
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
@@ -61,7 +77,7 @@ def load():
     real = pd.read_csv(os.path.join(DATA_DIR, "train_real.csv"))
     sets = [
         ("GAN (filtered)",   pd.read_csv(os.path.join(DATA_DIR, "filtered_gan.csv")),   "#0066FF"),
-        ("CTGAN (filtered)", pd.read_csv(os.path.join(DATA_DIR, "filtered_ctgan.csv")), "#FF4500"),
+        ("cGAN (filtered)", pd.read_csv(os.path.join(DATA_DIR, "filtered_ctgan.csv")), "#FF4500"),
         ("TVAE (filtered)",  pd.read_csv(os.path.join(DATA_DIR, "filtered_tvae.csv")),  "#00B43C"),
         ("Consensus",        pd.read_csv(os.path.join(DATA_DIR, "consensus_equalised.csv")), "#9900CC"),
     ]
@@ -120,12 +136,12 @@ def plot(summary, dists_by_method, real_real_min, threshold, sets):
         parts[part].set_color("#444444")
 
     ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, fontsize=8)
-    ax.set_ylabel("Nearest-neighbour distance (standardised)")
+    ax.set_xticklabels(labels, fontsize=8*_S)
+    ax.set_ylabel("NN distance (standardised)")
     ax.set_title("Distance from each record to its nearest real patient")
     ax.axhline(threshold, color="#DC0000", linewidth=1.5, linestyle="--",
                label=f"Risk threshold ({RISK_PERCENTILE}th pct real-to-real = {threshold:.3f})")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8*_S)
 
     ax2 = axes[1]
     methods = summary["Method"].tolist()
@@ -134,15 +150,15 @@ def plot(summary, dists_by_method, real_real_min, threshold, sets):
                    edgecolor="white", linewidth=0.8, width=0.5)
     for bar, val in zip(bars, risks):
         ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
-                 f"{val}%", ha="center", va="bottom", fontsize=10, fontweight="bold")
-    ax2.set_ylabel("Percentage of records flagged as near-duplicates (%)")
+                 f"{val}%", ha="center", va="bottom", fontsize=10*_S, fontweight="bold")
+    ax2.set_ylabel("Near-duplicate rate (%)")
     ax2.set_title("Near-duplicate risk by synthetic method\n"
                   "(records closer to a real patient than the risk threshold)")
     ax2.set_ylim(0, max(risks) * 1.35 + 1)
 
     fig.tight_layout()
     out = os.path.join(FIG_DIR, "privacy_risk_analysis.png")
-    fig.savefig(out, dpi=300, bbox_inches="tight")
+    fig.savefig(out, dpi=300, bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
     return out
 

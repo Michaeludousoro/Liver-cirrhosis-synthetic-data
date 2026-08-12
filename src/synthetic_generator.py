@@ -24,7 +24,7 @@ Vanilla GAN (Generative Adversarial Network)
     Generator improves until the Discriminator can no longer reliably
     distinguish real from synthetic.
 
-CTGAN (Conditional Tabular GAN)
+cGAN (Conditional Tabular GAN)
     A conditional extension of the GAN where the Generator receives the
     patient outcome label (survived or deceased) as an additional input. This
     encourages the Generator to create realistic records for each class
@@ -247,7 +247,7 @@ class VanillaGAN:
         return self.G(noise, training=False).numpy()
 
 
-class CTGAN:
+class cGAN:
     """
     Conditional Tabular Generative Adversarial Network.
 
@@ -309,7 +309,7 @@ class CTGAN:
         x = layers.LeakyReLU(0.2)(x)
         x = layers.BatchNormalization(momentum=0.8)(x)
         output = layers.Dense(n_features, activation="sigmoid")(x)
-        return keras.Model([noise_input, label_input], output, name="CTGAN_Generator")
+        return keras.Model([noise_input, label_input], output, name="cGAN_Generator")
 
     def _build_discriminator(self, n_features):
         """
@@ -328,7 +328,7 @@ class CTGAN:
         x = layers.LeakyReLU(0.2)(x)
         x = layers.Dropout(0.3)(x)
         output = layers.Dense(1, activation="sigmoid")(x)
-        return keras.Model([data_input, label_input], output, name="CTGAN_Discriminator")
+        return keras.Model([data_input, label_input], output, name="cGAN_Discriminator")
 
     def _to_onehot(self, labels):
         """Convert an array of integer labels to one-hot vectors."""
@@ -354,7 +354,7 @@ class CTGAN:
 
     def fit(self, X_scaled, verbose=True):
         """
-        Train the CTGAN on normalised patient data.
+        Train the cGAN on normalised patient data.
 
         The target (Status) column must be the last column in X_scaled or
         the column at position target_col_idx. Its values are rounded to
@@ -420,7 +420,7 @@ class CTGAN:
             self.d_losses.append(mean_d)
 
             if verbose and epoch % self.print_every == 0:
-                print(f"  CTGAN  epoch {epoch:>4} of {self.epochs}  "
+                print(f"  cGAN  epoch {epoch:>4} of {self.epochs}  "
                       f"generator loss {mean_g:.4f}  discriminator loss {mean_d:.4f}")
 
         return self
@@ -634,7 +634,7 @@ def generate_synthetic(model, n_samples, scaler, col_order, post_process_fn):
 
     Parameters
     ----------
-    model           : a fitted VanillaGAN, CTGAN, or TVAE instance
+    model           : a fitted VanillaGAN, cGAN, or TVAE instance
     n_samples       : number of synthetic records to produce
     scaler          : the fitted MinMaxScaler from the data loader
     col_order       : list of column names matching the scaler's feature order

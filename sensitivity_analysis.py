@@ -6,7 +6,7 @@ This script tests five different threshold values for the consensus voting
 mechanism and records, for each threshold:
 
     - How many synthetic records pass
-    - What percentage came from each model (GAN, CTGAN, TVAE)
+    - What percentage came from each model (GAN, cGAN, TVAE)
     - The class balance of the accepted records (percent deceased)
     - The FID score of the accepted records versus real training patients
 
@@ -22,6 +22,22 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# Print-safe sizing: matplotlib points are relative to the figure canvas, so a
+# wide canvas placed at \\textwidth by LaTeX shrinks every label. Sizes here are
+# about twice their intended printed size so they land near 8 pt on the page.
+import matplotlib.pyplot as _plt
+_S = 2.0
+_plt.rcParams.update({
+    "font.family": "DejaVu Sans", "font.size": 8.5*_S, "axes.titlesize": 9.5*_S,
+    "axes.labelsize": 8.5*_S, "xtick.labelsize": 7.5*_S, "ytick.labelsize": 7.5*_S,
+    "legend.fontsize": 7.5*_S, "text.color": "black", "axes.labelcolor": "black",
+    "xtick.color": "black", "ytick.color": "black", "axes.edgecolor": "black",
+    "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+    "axes.linewidth": 0.8*_S, "lines.linewidth": 1.4*_S, "xtick.major.width": 0.8*_S,
+    "ytick.major.width": 0.8*_S, "patch.linewidth": 0.6*_S, "savefig.dpi": 300,
+})
+
 from sklearn.preprocessing import StandardScaler
 
 # Allow Python to find the src package
@@ -47,7 +63,7 @@ def load_data():
 
     print(f"Loaded training data:    {len(train_df)} real patients")
     print(f"Loaded filtered GAN:     {len(filtered_gan)} records")
-    print(f"Loaded filtered CTGAN:   {len(filtered_ctgan)} records")
+    print(f"Loaded filtered cGAN:   {len(filtered_ctgan)} records")
     print(f"Loaded filtered TVAE:    {len(filtered_tvae)} records")
     print()
 
@@ -67,7 +83,7 @@ def run_consensus_at_threshold(filtered_gan, filtered_ctgan, filtered_tvae,
     """
     methods = {
         "GAN":   filtered_gan.values.astype(float),
-        "CTGAN": filtered_ctgan.values.astype(float),
+        "cGAN": filtered_ctgan.values.astype(float),
         "TVAE":  filtered_tvae.values.astype(float),
     }
     col_names    = filtered_gan.columns.tolist()
@@ -135,7 +151,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
                 "Threshold":      thr,
                 "Records passed": 0,
                 "GAN percent":    0.0,
-                "CTGAN percent":  0.0,
+                "cGAN percent":  0.0,
                 "TVAE percent":   0.0,
                 "Deceased percent": None,
                 "FID score":      None,
@@ -144,7 +160,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
 
         pre_dedup_total = sum(source_counts.values())
         gan_pct   = round(source_counts["GAN"]   / pre_dedup_total * 100, 1)
-        ctgan_pct = round(source_counts["CTGAN"] / pre_dedup_total * 100, 1)
+        ctgan_pct = round(source_counts["cGAN"] / pre_dedup_total * 100, 1)
         tvae_pct  = round(source_counts["TVAE"]  / pre_dedup_total * 100, 1)
 
         if "Status" in consensus_df.columns:
@@ -160,7 +176,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
             "Threshold":        thr,
             "Records passed":   n_total,
             "GAN percent":      gan_pct,
-            "CTGAN percent":    ctgan_pct,
+            "cGAN percent":    ctgan_pct,
             "TVAE percent":     tvae_pct,
             "Deceased percent": deceased_pct,
             "FID score":        round(fid, 4),
@@ -176,14 +192,14 @@ def print_results_table(results_df):
     print("CONSENSUS THRESHOLD SENSITIVITY ANALYSIS RESULTS")
     print("=" * 80)
     print()
-    print(f"{'Threshold':<12} {'Records':<10} {'GAN %':<9} {'CTGAN %':<10} "
+    print(f"{'Threshold':<12} {'Records':<10} {'GAN %':<9} {'cGAN %':<10} "
           f"{'TVAE %':<9} {'Deceased %':<13} {'FID score':<10}")
     print("-" * 75)
     for _, row in results_df.iterrows():
         thr    = row["Threshold"]
         n      = int(row["Records passed"]) if not pd.isna(row["Records passed"]) else 0
         gan    = row["GAN percent"]
-        ctgan  = row["CTGAN percent"]
+        ctgan  = row["cGAN percent"]
         tvae   = row["TVAE percent"]
         dec    = f"{row['Deceased percent']:.1f}" if row["Deceased percent"] is not None else "N/A"
         fid    = f"{row['FID score']:.4f}" if row["FID score"] is not None else "N/A"
@@ -232,10 +248,10 @@ def plot_sensitivity(results_df):
              color="#1e3a5f", linewidth=2, marker="o", markersize=7)
     ax1.axvline(x=0.5, color="#dc2626", linestyle="--", linewidth=1.2,
                 label="Original threshold (0.5)")
-    ax1.set_xlabel("Consensus threshold (standardised units)", fontsize=11)
-    ax1.set_ylabel("Number of records accepted", fontsize=11)
-    ax1.set_title("Records accepted at each threshold", fontsize=11)
-    ax1.legend(fontsize=9)
+    ax1.set_xlabel("Consensus threshold", fontsize=11*_S)
+    ax1.set_ylabel("Number of records accepted", fontsize=11*_S)
+    ax1.set_title("Records accepted at each threshold", fontsize=11*_S)
+    ax1.legend(fontsize=9*_S)
     ax1.grid(True, alpha=0.3)
     ax1.set_xticks(valid["Threshold"])
 
@@ -245,17 +261,17 @@ def plot_sensitivity(results_df):
              color="#059669", linewidth=2, marker="s", markersize=7)
     ax2.axvline(x=0.5, color="#dc2626", linestyle="--", linewidth=1.2,
                 label="Original threshold (0.5)")
-    ax2.set_xlabel("Consensus threshold (standardised units)", fontsize=11)
-    ax2.set_ylabel("FID score (lower is better)", fontsize=11)
-    ax2.set_title("FID score of accepted records at each threshold", fontsize=11)
-    ax2.legend(fontsize=9)
+    ax2.set_xlabel("Consensus threshold", fontsize=11*_S)
+    ax2.set_ylabel("FID score (lower is better)", fontsize=11*_S)
+    ax2.set_title("FID score of accepted records at each threshold", fontsize=11*_S)
+    ax2.legend(fontsize=9*_S)
     ax2.grid(True, alpha=0.3)
     ax2.set_xticks(valid["Threshold"])
 
     plt.tight_layout()
 
     out_path = os.path.join(FIGURES_DIR, "threshold_sensitivity.png")
-    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.savefig(out_path, dpi=300, bbox_inches="tight", pad_inches=0.05)
     plt.close()
     print(f"Sensitivity figure saved to {out_path}")
 
