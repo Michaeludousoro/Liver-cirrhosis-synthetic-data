@@ -168,7 +168,14 @@ def plot_subgroup(results_df):
     colors = {"Random Forest": "#3b82f6", "Gradient Boosting": "#059669",
                "Logistic Regression": "#ef4444"}
 
-    fig, axes = plt.subplots(1, 2, figsize=(8, 3.5))
+    # A wide canvas is required: two panels, six grouped categories and a
+    # four-entry legend cannot coexist at print-legible font sizes on a small
+    # figure. The legend is drawn once for the whole figure rather than per
+    # panel, which frees the plotting area entirely.
+    short = {"Early stage (1-2)": "Early 1-2", "Late stage (3-4)": "Late 3-4",
+             "Female": "Female", "Male": "Male",
+             "D-penicillamine": "D-pen.", "Placebo": "Placebo"}
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5.5))
     for ax_idx, scenario_prefix in enumerate(["A", "C"]):
         sc_label = "A: Real only" if scenario_prefix == "A" else "C: Real + Consensus"
         ax = axes[ax_idx]
@@ -191,17 +198,19 @@ def plot_subgroup(results_df):
         ax.axhline(0.8, color="black", linestyle="--", linewidth=1,
                    label="AUC = 0.8 (clinical threshold)")
         ax.set_xticks(x)
-        sg_labels = [f"{s}\n(n={results_df[results_df['Subgroup']==s]['n'].values[0]})"
+        sg_labels = [f"{short[s]}\n(n={results_df[results_df['Subgroup']==s]['n'].values[0]})"
                      for s in subgroups]
-        ax.set_xticklabels(sg_labels, fontsize=9*_S)
-        ax.set_ylabel("AUC", fontsize=11*_S)
+        ax.set_xticklabels(sg_labels, fontsize=7.5*_S)
+        ax.set_ylabel("AUC", fontsize=8.5*_S)
         sc_title = "Scenario A: Real data only" if scenario_prefix == "A" else "Scenario C: Real + Consensus"
-        ax.set_title(sc_title, fontsize=11*_S)
+        ax.set_title(sc_title, fontsize=9.5*_S)
         ax.set_ylim(0, 1.05)
-        ax.legend(fontsize=9*_S)
         ax.grid(True, alpha=0.3, axis="y")
 
-    plt.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4,
+               fontsize=7.5*_S, frameon=False, bbox_to_anchor=(0.5, -0.02))
+    plt.tight_layout(rect=[0, 0.06, 1, 1])
     out = os.path.join(FIGURES, "subgroup_analysis.png")
     plt.savefig(out, dpi=300, bbox_inches="tight", pad_inches=0.05)
     plt.close()

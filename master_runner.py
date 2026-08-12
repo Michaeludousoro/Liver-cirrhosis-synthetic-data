@@ -350,14 +350,28 @@ def main(args):
     print("  Generating Figure 5: consensus source distribution ...")
     plot_consensus_distribution(source_counts)
 
+    # Scenario D (SMOTE) is produced by a separate step and written to its own
+    # CSV, so performance_df alone covers only A, B, C and E. The figures below
+    # are captioned as comparing all training scenarios, so D is merged in here;
+    # without this the figures silently disagree with Table III.
+    plot_df = performance_df
+    smote_path = os.path.join(OUT_RESULTS, "smote_results.csv")
+    if os.path.exists(smote_path):
+        smote_df = pd.read_csv(smote_path)
+        if list(smote_df.columns) == list(performance_df.columns):
+            plot_df = pd.concat([performance_df, smote_df], ignore_index=True)
+            plot_df = plot_df.sort_values("Scenario").reset_index(drop=True)
+            print(f"  Merged Scenario D from smote_results.csv "
+                  f"({plot_df['Scenario'].nunique()} scenarios in figures)")
+
     print("  Generating Figure 6: performance heatmap ...")
-    plot_performance_heatmap(performance_df, metric="F1")
+    plot_performance_heatmap(plot_df, metric="F1")
 
     print("  Generating Figure 7: model comparison bar chart ...")
-    plot_model_comparison(performance_df)
+    plot_model_comparison(plot_df)
 
     print("  Generating Figure 8: all metrics line plot ...")
-    plot_all_metrics(performance_df)
+    plot_all_metrics(plot_df)
 
     print("  Generating Figure 9: pipeline flowchart ...")
     plot_pipeline_flowchart()

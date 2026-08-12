@@ -201,7 +201,7 @@ def plot_fid_comparison(fid_df):
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + fid_df["FID"].max() * 0.01,
             f"{val:.3f}",
-            ha="center", va="bottom", fontsize=9
+            ha="center", va="bottom", fontsize=9*_PRINT_SCALE
         )
 
     ax.set_ylabel("FID score (lower is better)")
@@ -259,7 +259,7 @@ def plot_iqr_filtering(real_df, raw_synthetics, filtered_synthetics,
         ax.set_title(method)
         ax.set_xlabel(col + " (mg/dL)")
         ax.set_ylabel("Density")
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8*_PRINT_SCALE)
 
     fig.tight_layout()
     _save_figure(fig, "fig2_iqr_filtering.png")
@@ -304,7 +304,7 @@ def plot_distribution_comparison(real_df, synthetic_dict, cols=None):
         ax.set_xlabel("Value")
         ax.set_ylabel("Density")
         if i == 0:
-            ax.legend(fontsize=7)
+            ax.legend(fontsize=7*_PRINT_SCALE)
 
     for j in range(len(cols), 6):
         axes[j].set_visible(False)
@@ -343,8 +343,8 @@ def plot_correlation_heatmap(real_df, consensus_df, numeric_cols=None):
         image  = ax.imshow(corr.values, cmap=cmap, vmin=-1, vmax=1, aspect="auto")
         ax.set_xticks(range(len(numeric_cols)))
         ax.set_yticks(range(len(numeric_cols)))
-        ax.set_xticklabels(numeric_cols, rotation=45, ha="right", fontsize=8)
-        ax.set_yticklabels(numeric_cols, fontsize=8)
+        ax.set_xticklabels(numeric_cols, rotation=45, ha="right", fontsize=8*_PRINT_SCALE)
+        ax.set_yticklabels(numeric_cols, fontsize=8*_PRINT_SCALE)
         ax.set_title(title)
         plt.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
 
@@ -377,7 +377,7 @@ def plot_consensus_distribution(source_counts):
     for bar, v in zip(bars, counts):
         ax_bar.text(bar.get_x() + bar.get_width() / 2,
                     bar.get_height() + total * 0.01,
-                    str(v), ha="center", va="bottom", fontsize=10)
+                    str(v), ha="center", va="bottom", fontsize=10*_PRINT_SCALE)
     ax_bar.set_ylabel("Number of consensus records")
     ax_bar.set_title("Records contributed per method")
 
@@ -429,7 +429,7 @@ def plot_performance_heatmap(results_df, metric="F1"):
             if not np.isnan(val):
                 text_color = "white" if val > mean_val else "black"
                 ax.text(j, i, f"{val:.3f}", ha="center", va="center",
-                        color=text_color, fontsize=10, fontweight="bold")
+                        color=text_color, fontsize=10*_PRINT_SCALE, fontweight="bold")
 
     plt.colorbar(image, ax=ax, fraction=0.02, pad=0.02, label=metric)
     fig.tight_layout()
@@ -481,21 +481,21 @@ def plot_model_comparison(results_df, metrics=None):
                         bar.get_x() + bar.get_width() / 2,
                         bar.get_height() + 0.003,
                         f"{v:.3f}", ha="center", va="bottom",
-                        fontsize=7, rotation=90
+                        fontsize=7*_PRINT_SCALE, rotation=90
                     )
 
         ax.set_xticks(x)
         ax.set_xticklabels(
-            [s[:22] + "..." for s in scenarios],
-            rotation=25, ha="right", fontsize=8
+            [t.split(":")[0].strip() for t in scenarios],
+            rotation=25, ha="right", fontsize=8*_PRINT_SCALE
         )
         ax.set_ylabel(metric)
         ax.set_title(metric)
         ax.set_ylim(0, min(1.15, results_df[metric].max() * 1.2))
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center",
-               bbox_to_anchor=(0.5, 1.02), ncol=len(classifiers), fontsize=8)
+    fig.legend(handles, labels, loc="lower center",
+               bbox_to_anchor=(0.5, 1.02), ncol=len(classifiers), fontsize=8*_PRINT_SCALE)
     fig.tight_layout()
     _save_figure(fig, "fig7_model_comparison.png")
 
@@ -547,7 +547,7 @@ def plot_all_metrics(results_df):
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center",
-               bbox_to_anchor=(0.5, -0.12), ncol=len(classifiers), fontsize=8)
+               bbox_to_anchor=(0.5, -0.12), ncol=len(classifiers), fontsize=8*_PRINT_SCALE)
     fig.tight_layout()
     _save_figure(fig, "fig8_all_metrics.png")
 
@@ -569,23 +569,25 @@ def plot_pipeline_flowchart():
     # Each entry is (x_centre, y_centre, label_text, background_colour)
     steps = [
         (5.0, 9.2, "Raw Dataset\n418 patients (cirrhosis.csv)",               "#505050"),
-        (5.0, 8.0, "Complete-Case Filter\nDrop all rows with missing values",  "#505050"),
-        (5.0, 6.8, "Encode features, scale to [0,1], split 70/30",             "#505050"),
+        (5.0, 8.0, "Complete-Case Filter\n(drop rows with missing values)",  "#505050"),
+        (5.0, 6.8, "Encode, scale to [0,1]\nsplit 70/30",             "#505050"),
         (2.5, 5.5, "Vanilla GAN\n500 samples",  "#505050"),
         (5.0, 5.5, "cGAN\n500 samples",         "#505050"),
         (7.5, 5.5, "VAE\n500 samples",          "#505050"),
         (2.5, 4.3, "IQR Filter",                 "#505050"),
         (5.0, 4.3, "IQR Filter",                 "#505050"),
         (7.5, 4.3, "IQR Filter",                 "#505050"),
-        (5.0, 3.1, "Consensus Voting\ntolerance 0.5, min votes 2",              "#505050"),
-        (5.0, 2.0, "FID Scores and Predictive Utility Evaluation",             "#505050"),
-        (5.0, 0.9, "Statistical Tests and Publication Figures",                "#505050"),
+        (5.0, 3.1, "Consensus Voting\ntolerance 5.0, min votes 2",              "#505050"),
+        (5.0, 2.0, "FID Scores and\nPredictive Utility Evaluation",             "#505050"),
+        (5.0, 0.9, "Statistical Tests and\nPublication Figures",                "#505050"),
     ]
 
     box_height = 0.55
-    box_width  = 3.6
+    WIDE, NARROW = 5.2, 2.2          # single-step vs three-across rows
+    TRIPLE_ROWS = {5.5, 4.3}         # y-levels holding three boxes side by side
 
     for (x, y, label, color) in steps:
+        box_width = NARROW if y in TRIPLE_ROWS else WIDE
         box = mpatches.FancyBboxPatch(
             (x - box_width / 2, y - box_height / 2),
             box_width, box_height,
@@ -595,7 +597,7 @@ def plot_pipeline_flowchart():
         )
         ax.add_patch(box)
         ax.text(x, y, label, ha="center", va="center",
-                color="white", fontsize=8.5, fontweight="bold",
+                color="white", fontsize=6.5*_PRINT_SCALE, fontweight="bold",
                 multialignment="center")
 
     arrow_style = dict(arrowstyle="->", color="#333333",

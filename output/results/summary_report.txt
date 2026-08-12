@@ -1,41 +1,36 @@
 ====================================================================
-FULL PROJECT SUMMARY REPORT
-Beyond Distributional Similarity: Evaluating Predictive Utility
-of Synthetic Liver Cirrhosis Data
-Mayo Clinic Primary Biliary Cirrhosis Dataset
+SYNTHETIC DATA PIPELINE  SUMMARY REPORT
+Primary Biliary Cirrhosis  Mayo Clinic PBC Dataset
 ====================================================================
 
-DATA PREPARATION
+DATA
 
-  Raw dataset rows                : 418
-  Rows with any missing value     : 142
-  Complete case rows retained     : 276
-  Features used                   : 18 (11 continuous, 5 binary, 2 ordinal)
-  Target variable                 : Status (0 = alive or transplant, 1 = deceased)
-  Training set size               : 193 patients
-  Test set size (held out)        : 83 patients
-  Training class balance          : 115 survived, 78 deceased
-  Split method                    : Stratified 70/30, random seed 42
+  Complete patient records used   : 276
+  Training set size               : 193
+  Test set size (held out)        : 83
+  Number of features              : 18
+  Target variable                 : Status (0 = alive, 1 = deceased)
+  Training set class balance      : {0: 115, 1: 78}
 
-SYNTHETIC DATA GENERATION
+SYNTHETIC GENERATION
 
-  GAN       generated 500  after IQR filter 331 kept (66.2% retained)
-  cGAN      data not found
-  VAE       data not found
+  GAN       generated 500 records    after IQR filter 331 records kept    (66.2 percent retained)
+  cGAN      generated 500 records    after IQR filter 292 records kept    (58.4 percent retained)
+  VAE       generated 500 records    after IQR filter 499 records kept    (99.8 percent retained)
 
 CONSENSUS VOTING
 
-  Total consensus records         : 787
-  Records from GAN     : 261  (33.2%)
-  Records from cGAN    : 234  (29.7%)
-  Records from VAE     : 292  (37.1%)
+  Consensus records accepted : 787
+    Records from GAN     : 261
+    Records from cGAN    : 234
+    Records from VAE     : 292
 
 FID SCORES (lower is better)
 
-  GAN (filtered)             FID = 0.0995  (n = 331)
-  cGAN (filtered)            FID = 0.0724  (n = 292)
-  VAE (filtered)             FID = 0.2280  (n = 499)
-  Consensus                  FID = 0.0809  (n = 787)
+  GAN (filtered)             FID = 0.0995    (n = 331)
+  cGAN (filtered)            FID = 0.0724    (n = 292)
+  VAE (filtered)             FID = 0.2280    (n = 499)
+  Consensus                  FID = 0.0809    (n = 787)
 
 PREDICTIVE UTILITY (evaluated on held-out real test set)
 
@@ -54,16 +49,14 @@ PREDICTIVE UTILITY (evaluated on held-out real test set)
 
 STATISTICAL TESTS
 
-  shapiro_wilk         : 11 tests run
-  ks_tests             : 44 tests run
-  js_divergence        : 44 tests run
-  cohens_d             : 44 tests run
-  chi_square           : 24 tests run
+  Shapiro-Wilk tests run  : 11
+  KS tests run            : 44
+  Chi-square tests run    : 24
 
-OUTPUT FILES
+OUTPUT LOCATIONS
 
-  output/data/      all CSV data files (real, synthetic, filtered, consensus)
-  output/figures/   10 publication figures at 300 DPI
+  output/data/      all CSV data files
+  output/figures/   all publication figures at 300 DPI
   output/results/   numeric result tables and this report
 
 ====================================================================
