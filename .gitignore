@@ -33,3 +33,5 @@ output/data/
 
 # Word build artifact
 paper/*.docx
+
+meeting_brief.pdf
