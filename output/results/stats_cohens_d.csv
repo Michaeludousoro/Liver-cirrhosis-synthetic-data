@@ -21,17 +21,17 @@ cGAN (filtered),SGOT,0.0888,negligible
 cGAN (filtered),Tryglicerides,0.3034,small
 cGAN (filtered),Platelets,0.1748,negligible
 cGAN (filtered),Prothrombin,0.2268,small
-TVAE (filtered),N_Days,0.0994,negligible
-TVAE (filtered),Age,-0.0723,negligible
-TVAE (filtered),Bilirubin,-0.0163,negligible
-TVAE (filtered),Cholesterol,-0.0437,negligible
-TVAE (filtered),Albumin,0.1626,negligible
-TVAE (filtered),Copper,-0.1039,negligible
-TVAE (filtered),Alk_Phos,-0.0248,negligible
-TVAE (filtered),SGOT,-0.2304,small
-TVAE (filtered),Tryglicerides,0.0172,negligible
-TVAE (filtered),Platelets,-0.0882,negligible
-TVAE (filtered),Prothrombin,-0.0447,negligible
+VAE (filtered),N_Days,0.0994,negligible
+VAE (filtered),Age,-0.0723,negligible
+VAE (filtered),Bilirubin,-0.0163,negligible
+VAE (filtered),Cholesterol,-0.0437,negligible
+VAE (filtered),Albumin,0.1626,negligible
+VAE (filtered),Copper,-0.1039,negligible
+VAE (filtered),Alk_Phos,-0.0248,negligible
+VAE (filtered),SGOT,-0.2304,small
+VAE (filtered),Tryglicerides,0.0172,negligible
+VAE (filtered),Platelets,-0.0882,negligible
+VAE (filtered),Prothrombin,-0.0447,negligible
 Consensus,N_Days,-0.0247,negligible
 Consensus,Age,0.0765,negligible
 Consensus,Bilirubin,0.53,medium

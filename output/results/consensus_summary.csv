@@ -1,4 +1,4 @@
 Source,Count,Percentage
 GAN,261,33.2
 cGAN,234,29.7
-TVAE,292,37.1
+VAE,292,37.1

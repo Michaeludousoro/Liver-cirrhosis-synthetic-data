@@ -1,8 +1,8 @@
 """
-TVAE Privacy Enhancement Analysis
+VAE Privacy Enhancement Analysis
 ====================================
 
-The filtered TVAE pool has a near-duplicate rate of 38.2%, meaning that
+The filtered VAE pool has a near-duplicate rate of 38.2%, meaning that
 38.2% of its 500 generated records fall within the 5th percentile of
 real-to-real nearest-neighbour distances in standardised feature space.
 This matches the method used in the original notebook (Section 12).
@@ -13,14 +13,14 @@ This script addresses that limitation in two ways:
 
     1. Output perturbation analysis.
        Calibrated Gaussian noise is added to the continuous features of
-       TVAE-generated records after generation. This moves records away from
+       VAE-generated records after generation. This moves records away from
        their nearest real patients, reducing the near-duplicate rate.
        The privacy-utility tradeoff is measured by reporting near-duplicate
        rate and FID at each noise level.
 
     2. Formal differential privacy (DP-SGD) epsilon estimation.
        The moments accountant formula for the Gaussian mechanism is used to
-       estimate what (epsilon, delta)-DP guarantee a DP-SGD retrained TVAE
+       estimate what (epsilon, delta)-DP guarantee a DP-SGD retrained VAE
        would achieve, across a range of noise multiplier values. This provides
        the theoretical complement to the empirical output perturbation.
 
@@ -175,7 +175,7 @@ def run_output_perturbation(train_df, filtered_tvae):
     threshold, scaler, feat_cols = compute_risk_threshold(train_df, ALL_FEATURE_COLS)
     print(f"Risk threshold (5th pct real-to-real distance): {threshold:.4f}")
     print()
-    print("Output perturbation analysis (noise added to TVAE continuous features):")
+    print("Output perturbation analysis (noise added to VAE continuous features):")
 
     for sigma in sigma_values:
         if sigma == 0.0:
@@ -196,7 +196,7 @@ def run_output_perturbation(train_df, filtered_tvae):
 
 def run_dp_estimation(n_train=193, n_epochs=300, batch_size=32, delta=1e-5):
     """
-    Estimate epsilon across a range of noise multiplier values for DP-TVAE.
+    Estimate epsilon across a range of noise multiplier values for DP-VAE.
     """
     sigmas  = [0.5, 0.8, 1.0, 1.2, 1.5, 2.0, 3.0]
     rows = []
@@ -274,7 +274,7 @@ def plot_results(perturb_df, dp_df):
 def main():
     train_df      = pd.read_csv(os.path.join(DATA, "train_real.csv"))
     filtered_tvae = pd.read_csv(os.path.join(DATA, "filtered_tvae.csv"))
-    print(f"Loaded: train {len(train_df)} | TVAE {len(filtered_tvae)}")
+    print(f"Loaded: train {len(train_df)} | VAE {len(filtered_tvae)}")
     print()
 
     perturb_df = run_output_perturbation(train_df, filtered_tvae)

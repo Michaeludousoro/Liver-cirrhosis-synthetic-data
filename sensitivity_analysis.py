@@ -6,7 +6,7 @@ This script tests five different threshold values for the consensus voting
 mechanism and records, for each threshold:
 
     - How many synthetic records pass
-    - What percentage came from each model (GAN, cGAN, TVAE)
+    - What percentage came from each model (GAN, cGAN, VAE)
     - The class balance of the accepted records (percent deceased)
     - The FID score of the accepted records versus real training patients
 
@@ -64,7 +64,7 @@ def load_data():
     print(f"Loaded training data:    {len(train_df)} real patients")
     print(f"Loaded filtered GAN:     {len(filtered_gan)} records")
     print(f"Loaded filtered cGAN:   {len(filtered_ctgan)} records")
-    print(f"Loaded filtered TVAE:    {len(filtered_tvae)} records")
+    print(f"Loaded filtered VAE:    {len(filtered_tvae)} records")
     print()
 
     return train_df, filtered_gan, filtered_ctgan, filtered_tvae
@@ -84,7 +84,7 @@ def run_consensus_at_threshold(filtered_gan, filtered_ctgan, filtered_tvae,
     methods = {
         "GAN":   filtered_gan.values.astype(float),
         "cGAN": filtered_ctgan.values.astype(float),
-        "TVAE":  filtered_tvae.values.astype(float),
+        "VAE":  filtered_tvae.values.astype(float),
     }
     col_names    = filtered_gan.columns.tolist()
     method_names = list(methods.keys())
@@ -152,7 +152,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
                 "Records passed": 0,
                 "GAN percent":    0.0,
                 "cGAN percent":  0.0,
-                "TVAE percent":   0.0,
+                "VAE percent":   0.0,
                 "Deceased percent": None,
                 "FID score":      None,
             })
@@ -161,7 +161,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
         pre_dedup_total = sum(source_counts.values())
         gan_pct   = round(source_counts["GAN"]   / pre_dedup_total * 100, 1)
         ctgan_pct = round(source_counts["cGAN"] / pre_dedup_total * 100, 1)
-        tvae_pct  = round(source_counts["TVAE"]  / pre_dedup_total * 100, 1)
+        tvae_pct  = round(source_counts["VAE"]  / pre_dedup_total * 100, 1)
 
         if "Status" in consensus_df.columns:
             deceased_pct = round(consensus_df["Status"].mean() * 100, 1)
@@ -177,7 +177,7 @@ def run_sensitivity_analysis(train_df, filtered_gan, filtered_ctgan, filtered_tv
             "Records passed":   n_total,
             "GAN percent":      gan_pct,
             "cGAN percent":    ctgan_pct,
-            "TVAE percent":     tvae_pct,
+            "VAE percent":     tvae_pct,
             "Deceased percent": deceased_pct,
             "FID score":        round(fid, 4),
         })
@@ -193,14 +193,14 @@ def print_results_table(results_df):
     print("=" * 80)
     print()
     print(f"{'Threshold':<12} {'Records':<10} {'GAN %':<9} {'cGAN %':<10} "
-          f"{'TVAE %':<9} {'Deceased %':<13} {'FID score':<10}")
+          f"{'VAE %':<9} {'Deceased %':<13} {'FID score':<10}")
     print("-" * 75)
     for _, row in results_df.iterrows():
         thr    = row["Threshold"]
         n      = int(row["Records passed"]) if not pd.isna(row["Records passed"]) else 0
         gan    = row["GAN percent"]
         ctgan  = row["cGAN percent"]
-        tvae   = row["TVAE percent"]
+        tvae   = row["VAE percent"]
         dec    = f"{row['Deceased percent']:.1f}" if row["Deceased percent"] is not None else "N/A"
         fid    = f"{row['FID score']:.4f}" if row["FID score"] is not None else "N/A"
         marker = " <-- original threshold" if thr == 0.5 else ""

@@ -12,7 +12,7 @@ Purpose of this module
 After generating and filtering synthetic data from three different generative
 models, we want to identify the subset of synthetic records that multiple
 models agree are representative. A record that appears in the realistic region
-of GAN output, cGAN output, and TVAE output simultaneously is more likely to
+of GAN output, cGAN output, and VAE output simultaneously is more likely to
 reflect a genuine pattern in the data than a record that only one model produces.
 
 This is the concept behind consensus voting: we retain only those synthetic
@@ -67,7 +67,7 @@ def run_consensus(filtered_gan, filtered_ctgan, filtered_tvae,
     ----------
     filtered_gan    : IQR-filtered synthetic records from the Vanilla GAN
     filtered_ctgan  : IQR-filtered synthetic records from cGAN
-    filtered_tvae   : IQR-filtered synthetic records from TVAE
+    filtered_tvae   : IQR-filtered synthetic records from VAE
     tolerance       : maximum Euclidean distance in standardised space for a
                       neighbouring record to cast a vote
     min_votes       : number of corroborating methods required (default 2)
@@ -82,7 +82,7 @@ def run_consensus(filtered_gan, filtered_ctgan, filtered_tvae,
     methods = {
         "GAN":   filtered_gan.values.astype(float),
         "cGAN": filtered_ctgan.values.astype(float),
-        "TVAE":  filtered_tvae.values.astype(float),
+        "VAE":  filtered_tvae.values.astype(float),
     }
     col_names    = filtered_gan.columns.tolist()
     method_names = list(methods.keys())

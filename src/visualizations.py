@@ -19,7 +19,7 @@ Figures produced
               This shows the generator and discriminator loss over training
               epochs, which helps the reader assess model convergence.
 
-    Figure 1: FID score bar chart comparing GAN, cGAN, TVAE, and Consensus.
+    Figure 1: FID score bar chart comparing GAN, cGAN, VAE, and Consensus.
               Lower bars indicate better fidelity to the real data distribution.
 
     Figure 2: IQR filtering effect on bilirubin distributions.
@@ -122,7 +122,7 @@ METHOD_COLORS = {
     "Real":      "#505050",
     "GAN":       "#0066FF",
     "cGAN":     "#FF4500",
-    "TVAE":      "#00B43C",
+    "VAE":      "#00B43C",
     "Consensus": "#9900CC",
 }
 SCENARIO_COLORS = ["#0052CC", "#E63800", "#008C38"]
@@ -143,7 +143,7 @@ def plot_training_losses(gan_model, ctgan_model, tvae_model):
 
     For the GAN and cGAN we plot both the generator and discriminator loss
     on the same axes. An ideal training run shows the two losses converging
-    toward a stable equilibrium. For the TVAE we plot the total ELBO loss,
+    toward a stable equilibrium. For the VAE we plot the total ELBO loss,
     which should decrease smoothly over training.
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
@@ -166,7 +166,7 @@ def plot_training_losses(gan_model, ctgan_model, tvae_model):
 
     ax = axes[2]
     ax.plot(tvae_model.losses, label="ELBO Loss", color="#00B43C", linewidth=1.8)
-    ax.set_title("TVAE Training Loss")
+    ax.set_title("VAE Training Loss")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Loss")
     ax.legend()
@@ -205,7 +205,6 @@ def plot_fid_comparison(fid_df):
         )
 
     ax.set_ylabel("FID score (lower is better)")
-    ax.set_title("Figure 1: Tabular FID Score Comparison")
     ax.tick_params(axis="x", rotation=20)
     fig.tight_layout()
     _save_figure(fig, "fig1_fid_comparison.png")
@@ -225,8 +224,8 @@ def plot_iqr_filtering(real_df, raw_synthetics, filtered_synthetics,
     Parameters
     ----------
     real_df             : real training DataFrame
-    raw_synthetics      : dictionary with keys GAN, cGAN, TVAE (unfiltered)
-    filtered_synthetics : dictionary with keys GAN, cGAN, TVAE (after IQR filter)
+    raw_synthetics      : dictionary with keys GAN, cGAN, VAE (unfiltered)
+    filtered_synthetics : dictionary with keys GAN, cGAN, VAE (after IQR filter)
     col                 : the feature column to visualise
     """
     methods = list(raw_synthetics.keys())
@@ -271,7 +270,7 @@ def plot_distribution_comparison(real_df, synthetic_dict, cols=None):
     Figure 3: Distribution comparison for six key clinical features.
 
     For each feature we overlay the real distribution with all four synthetic
-    distributions (GAN, cGAN, TVAE, Consensus). This gives a comprehensive
+    distributions (GAN, cGAN, VAE, Consensus). This gives a comprehensive
     visual impression of how well each method reproduces the clinical data.
 
     Parameters
@@ -364,7 +363,7 @@ def plot_consensus_distribution(source_counts):
 
     Parameters
     ----------
-    source_counts : dictionary from run_consensus, e.g. {'GAN': 45, 'cGAN': 60, 'TVAE': 95}
+    source_counts : dictionary from run_consensus, e.g. {'GAN': 45, 'cGAN': 60, 'VAE': 95}
     """
     labels = list(source_counts.keys())
     counts = [source_counts[k] for k in labels]
@@ -433,7 +432,6 @@ def plot_performance_heatmap(results_df, metric="F1"):
                         color=text_color, fontsize=10, fontweight="bold")
 
     plt.colorbar(image, ax=ax, fraction=0.02, pad=0.02, label=metric)
-    ax.set_title(f"Figure 6: Predictive Performance Heatmap ({metric} Score)", fontsize=13)
     fig.tight_layout()
     _save_figure(fig, "fig6_performance_heatmap.png")
 
@@ -575,7 +573,7 @@ def plot_pipeline_flowchart():
         (5.0, 6.8, "Encode features, scale to [0,1], split 70/30",             "#505050"),
         (2.5, 5.5, "Vanilla GAN\n500 samples",  "#505050"),
         (5.0, 5.5, "cGAN\n500 samples",         "#505050"),
-        (7.5, 5.5, "TVAE\n500 samples",          "#505050"),
+        (7.5, 5.5, "VAE\n500 samples",          "#505050"),
         (2.5, 4.3, "IQR Filter",                 "#505050"),
         (5.0, 4.3, "IQR Filter",                 "#505050"),
         (7.5, 4.3, "IQR Filter",                 "#505050"),
@@ -615,9 +613,5 @@ def plot_pipeline_flowchart():
         ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
                     arrowprops=arrow_style)
 
-    ax.set_title(
-        "Figure 9: Synthetic Data Pipeline for PBC Liver Cirrhosis Study",
-        fontsize=13, pad=10
-    )
     fig.tight_layout()
     _save_figure(fig, "fig9_pipeline_flowchart.png")

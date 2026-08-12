@@ -32,7 +32,7 @@ cGAN (Conditional Tabular GAN)
     synthetic output. Training uses balanced mini-batches so neither outcome
     dominates.
 
-TVAE (Tabular Variational Autoencoder)
+VAE (Tabular Variational Autoencoder)
     A variational autoencoder that learns a compressed latent representation
     of the patient data. The Encoder maps each patient record to a point in
     latent space described by a mean and a variance. The Decoder reconstructs
@@ -455,11 +455,11 @@ class cGAN:
         return out
 
 
-class TVAE:
+class VAE:
     """
     Tabular Variational Autoencoder for patient data generation.
 
-    The TVAE learns a probabilistic mapping from the space of patient records
+    The VAE learns a probabilistic mapping from the space of patient records
     to a lower-dimensional latent space. Unlike a GAN, there is no adversarial
     training. Instead the model minimises a loss that combines reconstruction
     quality with a regularisation term that pushes the latent space toward a
@@ -517,7 +517,7 @@ class TVAE:
         x       = layers.Dense(64,  activation="relu")(x)
         mu      = layers.Dense(self.latent_dim)(x)
         log_var = layers.Dense(self.latent_dim)(x)
-        return keras.Model(inp, [mu, log_var], name="TVAE_Encoder")
+        return keras.Model(inp, [mu, log_var], name="VAE_Encoder")
 
     def _build_decoder(self, n_features):
         """
@@ -531,7 +531,7 @@ class TVAE:
         x      = layers.Dense(64,  activation="relu")(inp)
         x      = layers.Dense(128, activation="relu")(x)
         output = layers.Dense(n_features, activation="sigmoid")(x)
-        return keras.Model(inp, output, name="TVAE_Decoder")
+        return keras.Model(inp, output, name="VAE_Decoder")
 
     @staticmethod
     def _reparameterise(mu, log_var):
@@ -548,7 +548,7 @@ class TVAE:
 
     def fit(self, X_scaled, verbose=True):
         """
-        Train the TVAE on normalised patient data.
+        Train the VAE on normalised patient data.
 
         On each mini-batch we pass the data through the Encoder to obtain the
         latent mean and log-variance, sample a latent code using the
@@ -598,7 +598,7 @@ class TVAE:
             self.losses.append(mean_loss)
 
             if verbose and epoch % self.print_every == 0:
-                print(f"  TVAE  epoch {epoch:>4} of {self.epochs}  "
+                print(f"  VAE  epoch {epoch:>4} of {self.epochs}  "
                       f"total loss {mean_loss:.4f}")
 
         return self
@@ -634,7 +634,7 @@ def generate_synthetic(model, n_samples, scaler, col_order, post_process_fn):
 
     Parameters
     ----------
-    model           : a fitted VanillaGAN, cGAN, or TVAE instance
+    model           : a fitted VanillaGAN, cGAN, or VAE instance
     n_samples       : number of synthetic records to produce
     scaler          : the fitted MinMaxScaler from the data loader
     col_order       : list of column names matching the scaler's feature order

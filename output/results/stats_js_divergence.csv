@@ -21,17 +21,17 @@ cGAN (filtered),SGOT,0.030027
 cGAN (filtered),Tryglicerides,0.048244
 cGAN (filtered),Platelets,0.055471
 cGAN (filtered),Prothrombin,0.029895
-TVAE (filtered),N_Days,0.401083
-TVAE (filtered),Age,0.397043
-TVAE (filtered),Bilirubin,0.247859
-TVAE (filtered),Cholesterol,0.139935
-TVAE (filtered),Albumin,0.304466
-TVAE (filtered),Copper,0.250227
-TVAE (filtered),Alk_Phos,0.205145
-TVAE (filtered),SGOT,0.324691
-TVAE (filtered),Tryglicerides,0.178935
-TVAE (filtered),Platelets,0.356368
-TVAE (filtered),Prothrombin,0.219495
+VAE (filtered),N_Days,0.401083
+VAE (filtered),Age,0.397043
+VAE (filtered),Bilirubin,0.247859
+VAE (filtered),Cholesterol,0.139935
+VAE (filtered),Albumin,0.304466
+VAE (filtered),Copper,0.250227
+VAE (filtered),Alk_Phos,0.205145
+VAE (filtered),SGOT,0.324691
+VAE (filtered),Tryglicerides,0.178935
+VAE (filtered),Platelets,0.356368
+VAE (filtered),Prothrombin,0.219495
 Consensus,N_Days,0.097674
 Consensus,Age,0.11034
 Consensus,Bilirubin,0.056652

@@ -1,4 +1,4 @@
 Method,Retention_Percent
 GAN,66.2
 CGAN,58.4
-TVAE,99.8
+VAE,99.8

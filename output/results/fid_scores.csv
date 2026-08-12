@@ -1,5 +1,5 @@
 Method,FID,n_samples
 GAN (filtered),0.0995,331
 cGAN (filtered),0.0724,292
-TVAE (filtered),0.228,499
+VAE (filtered),0.228,499
 Consensus,0.0809,787

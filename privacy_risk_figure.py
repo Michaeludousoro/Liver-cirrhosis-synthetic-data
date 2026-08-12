@@ -78,7 +78,7 @@ def load():
     sets = [
         ("GAN (filtered)",   pd.read_csv(os.path.join(DATA_DIR, "filtered_gan.csv")),   "#0066FF"),
         ("cGAN (filtered)", pd.read_csv(os.path.join(DATA_DIR, "filtered_ctgan.csv")), "#FF4500"),
-        ("TVAE (filtered)",  pd.read_csv(os.path.join(DATA_DIR, "filtered_tvae.csv")),  "#00B43C"),
+        ("VAE (filtered)",  pd.read_csv(os.path.join(DATA_DIR, "filtered_tvae.csv")),  "#00B43C"),
         ("Consensus",        pd.read_csv(os.path.join(DATA_DIR, "consensus_equalised.csv")), "#9900CC"),
     ]
     return real, sets

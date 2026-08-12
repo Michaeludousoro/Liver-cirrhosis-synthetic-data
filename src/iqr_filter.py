@@ -127,7 +127,7 @@ def filter_all(synthetic_dict, real_df):
 
     Parameters
     ----------
-    synthetic_dict : dictionary with keys 'GAN', 'cGAN', and 'TVAE',
+    synthetic_dict : dictionary with keys 'GAN', 'cGAN', and 'VAE',
                      each mapping to a pandas DataFrame of synthetic records
     real_df        : the real training DataFrame used to compute the bounds
 

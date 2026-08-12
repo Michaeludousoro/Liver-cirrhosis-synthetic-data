@@ -72,7 +72,7 @@ Table~\ref{tab:arch} gives the complete specification of all three models. All a
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{llll}
     \toprule
-    Setting & Vanilla GAN & cGAN & TVAE \\
+    Setting & Vanilla GAN & cGAN & VAE \\
     \midrule
     Latent dimension      & 100          & 100 + 2 (one-hot) & 32 \\
     Encoder / discriminator & 256, 128   & 256, 128          & 128, 64 \\
@@ -95,15 +95,19 @@ Table~\ref{tab:arch} gives the complete specification of all three models. All a
   }
 \end{table}
 
+Both the cGAN and the VAE are named for what they are rather than after published models they resemble, and the distinction matters when comparing these results against the literature.
+
 The model labelled cGAN is a conditional GAN in the sense of Mirza and Osindero: it conditions generator and discriminator on the outcome label and nothing more. It is deliberately not called CTGAN, because it implements none of the three components that define the Conditional Tabular GAN of Xu et al., namely mode-specific normalisation, training-by-sampling, and a PacGAN critic with the Wasserstein gradient penalty. A full CTGAN was implemented separately and compared against it; that comparison is reported in Section~IV of the main paper, where CTGAN reaches FID 0.109 against 0.072 for the cGAN after 18{,}000 generator updates.
 
-Training curves for all three models are shown in Fig.~\ref{figS:training}. The adversarial losses settle without the sustained oscillation that signals mode collapse, and the TVAE evidence lower bound falls steeply before levelling off, so all three models reach convergence within their training budgets.
+The model labelled VAE is likewise a standard variational autoencoder applied to min-max scaled tabular data. It is not the TVAE of Xu et al., which shares that paper's mode-specific normalisation, and results reported here should not be read as a benchmark of TVAE as originally specified.
+
+Training curves for all three models are shown in Fig.~\ref{figS:training}. The adversarial losses settle without the sustained oscillation that signals mode collapse, and the VAE evidence lower bound falls steeply before levelling off, so all three models reach convergence within their training budgets.
 
 \subsection{Reproducibility}
 
 Every result in the main paper and in this document comes from a single seeded execution of \texttt{master\_runner.py}. Python's \texttt{random}, NumPy, and TensorFlow are all seeded at 42, as is the train/test split, every scikit-learn estimator, and the SMOTE resampler. Re-executing the pipeline on the same machine and software environment reproduces all 19 result tables byte for byte, which we verified by checksum after a full clean re-run. TensorFlow does not guarantee bitwise-identical arithmetic across different hardware, operating systems or thread configurations, so small numerical differences may appear elsewhere; the conclusions do not depend on them.
 
-Two practical notes for anyone reproducing this work. First, the consensus procedure used throughout is the \emph{equalised} variant described in Section~III of the main paper, in which the TVAE pool is downsampled to match the smallest adversarial pool before voting. An earlier non-equalised variant produces a differently sized consensus set and different downstream numbers. Second, the nearest-neighbour privacy analysis reads the datasets written by \texttt{master\_runner.py} rather than regenerating them, so it always describes the same synthetic records the rest of the results are computed from.
+Two practical notes for anyone reproducing this work. First, the consensus procedure used throughout is the \emph{equalised} variant described in Section~III of the main paper, in which the VAE pool is downsampled to match the smallest adversarial pool before voting. An earlier non-equalised variant produces a differently sized consensus set and different downstream numbers. Second, the nearest-neighbour privacy analysis reads the datasets written by \texttt{master\_runner.py} rather than regenerating them, so it always describes the same synthetic records the rest of the results are computed from.
 
 % ===============================================================
 \section{Complete Distributional Fidelity Results}
@@ -121,7 +125,7 @@ Table~\ref{tab:ks} gives the two-sample KS statistic between each synthetic pool
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lcccc}
     \toprule
-    Feature & GAN & cGAN & TVAE & Consensus \\
+    Feature & GAN & cGAN & VAE & Consensus \\
     \midrule
     N\_Days & 0.194$^{*}$ & 0.075 & 0.396$^{*}$ & 0.209$^{*}$ \\
     Age & 0.083 & 0.122 & 0.410$^{*}$ & 0.214$^{*}$ \\
@@ -139,7 +143,7 @@ Table~\ref{tab:ks} gives the two-sample KS statistic between each synthetic pool
   }
 \end{table}
 
-Three observations follow. The TVAE differs significantly from the real data on all 11 features, which is consistent with its poor aggregate FID of 0.2280 and reflects the over-smoothing characteristic of variational reconstruction. The adversarial models each pass on a handful of features and fail badly on the heavily right-skewed ones: both GAN and cGAN produce their worst statistics on Bilirubin, Cholesterol and Alkaline Phosphatase, the three most skewed biomarkers in the cohort. This is the expected failure mode, since a sigmoid output layer trained on min-max scaled data has difficulty reproducing a long right tail.
+Three observations follow. The VAE differs significantly from the real data on all 11 features, which is consistent with its poor aggregate FID of 0.2280 and reflects the over-smoothing characteristic of variational reconstruction. The adversarial models each pass on a handful of features and fail badly on the heavily right-skewed ones: both GAN and cGAN produce their worst statistics on Bilirubin, Cholesterol and Alkaline Phosphatase, the three most skewed biomarkers in the cohort. This is the expected failure mode, since a sigmoid output layer trained on min-max scaled data has difficulty reproducing a long right tail.
 
 The consensus set behaves differently from either of its parents. It is significant on all 11 features, so by the binary reading of the test it looks worse than the individual adversarial pools. But its \emph{magnitudes} are the most uniform of any method, and on the hardest features it is substantially the best: Bilirubin 0.269 against the GAN's 0.413 and cGAN's 0.487, and Alkaline Phosphatase 0.249 against 0.506 and 0.409. Cross-model agreement trades a small loss on the easy features for a large gain on the difficult ones. This is worth stating carefully, because it is the clearest evidence that consensus voting does what it was designed to do at the distributional level, even though Section~IV of the main paper shows it delivers no predictive benefit.
 
@@ -154,7 +158,7 @@ Table~\ref{tab:jsd} reports the Jensen-Shannon divergence per feature, which is 
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lcccc}
     \toprule
-    Feature & GAN & cGAN & TVAE & Consensus \\
+    Feature & GAN & cGAN & VAE & Consensus \\
     \midrule
     N\_Days & 0.070 & 0.039 & 0.401 & 0.098 \\
     Age & 0.056 & 0.064 & 0.397 & 0.110 \\
@@ -172,7 +176,7 @@ Table~\ref{tab:jsd} reports the Jensen-Shannon divergence per feature, which is 
   }
 \end{table}
 
-The divergence measure tells a cleaner story than the KS test. The TVAE is between three and ten times worse than every other method on nearly every feature, with N\_Days and Age the worst affected at roughly 0.40. The consensus set is the most consistent performer: it never exceeds 0.110 on any feature, whereas the GAN reaches 0.138 on Alkaline Phosphatase and cGAN reaches 0.150 on Cholesterol. Averaged across features the consensus set is the best of the four, which is the result the aggregate FID of 0.0809 also reflects.
+The divergence measure tells a cleaner story than the KS test. The VAE is between three and ten times worse than every other method on nearly every feature, with N\_Days and Age the worst affected at roughly 0.40. The consensus set is the most consistent performer: it never exceeds 0.110 on any feature, whereas the GAN reaches 0.138 on Alkaline Phosphatase and cGAN reaches 0.150 on Cholesterol. Averaged across features the consensus set is the best of the four, which is the result the aggregate FID of 0.0809 also reflects.
 
 \subsection{Standardised Mean Differences}
 
@@ -185,7 +189,7 @@ Table~\ref{tab:cohens} gives Cohen's $d$ between each synthetic pool and the rea
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lcccc}
     \toprule
-    Feature & GAN & cGAN & TVAE & Consensus \\
+    Feature & GAN & cGAN & VAE & Consensus \\
     \midrule
     N\_Days & $-0.245$ & $+0.100$ & $+0.099$ & $-0.025$ \\
     Age & $-0.012$ & $+0.007$ & $-0.072$ & $+0.076$ \\
@@ -203,9 +207,9 @@ Table~\ref{tab:cohens} gives Cohen's $d$ between each synthetic pool and the rea
   }
 \end{table}
 
-This table contains the most counterintuitive result in the supplementary material, and it deserves attention. By the standardised mean difference criterion the TVAE is the \emph{best} method: every one of its 11 values is negligible, none exceeding 0.230 in magnitude. The adversarial models systematically overshoot on the skewed biomarkers, with the GAN reaching $+0.771$ on Alkaline Phosphatase.
+This table contains the most counterintuitive result in the supplementary material, and it deserves attention. By the standardised mean difference criterion the VAE is the \emph{best} method: every one of its 11 values is negligible, none exceeding 0.230 in magnitude. The adversarial models systematically overshoot on the skewed biomarkers, with the GAN reaching $+0.771$ on Alkaline Phosphatase.
 
-The explanation is that a variational autoencoder trained to minimise reconstruction error will reproduce the mean of the training distribution almost exactly while collapsing its variance and shape. Matching the first moment is not the same as matching the distribution. The KS and Jensen-Shannon results in Tables~\ref{tab:ks} and~\ref{tab:jsd} show the TVAE failing comprehensively on distributional shape at the same time as it succeeds on means.
+The explanation is that a variational autoencoder trained to minimise reconstruction error will reproduce the mean of the training distribution almost exactly while collapsing its variance and shape. Matching the first moment is not the same as matching the distribution. The KS and Jensen-Shannon results in Tables~\ref{tab:ks} and~\ref{tab:jsd} show the VAE failing comprehensively on distributional shape at the same time as it succeeds on means.
 
 The practical lesson generalises well beyond this dataset: a single fidelity metric can be satisfied by a model that is wrong in every other respect, and a method that looks best under one criterion can look worst under another computed on the same data. Reporting one number invites exactly this error. It is the distributional analogue of the main paper's central finding, that distributional similarity and predictive utility are different properties that must be measured separately.
 
@@ -225,7 +229,7 @@ The consensus tolerance of 5.0 standardised units is the single most consequenti
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{ccccccc}
     \toprule
-    Tol. & Records & GAN \% & cGAN \% & TVAE \% & Deceased \% & FID \\
+    Tol. & Records & GAN \% & cGAN \% & VAE \% & Deceased \% & FID \\
     \midrule
     2.5 & 89 & 11.2 & 15.7 & 73.0 & 1.1 & 0.2262 \\
     3.0 & 252 & 20.6 & 15.1 & 64.3 & 10.7 & 0.1677 \\
@@ -244,18 +248,18 @@ The class-balance column is the reason a very tight tolerance is unusable. At 2.
 
 As the tolerance widens, class balance recovers monotonically and FID improves monotonically, but the marginal return falls away. Between 5.0 and 6.0 the accepted set grows by 90 records while FID improves by only 0.0121, and each additional record is by construction one that fewer models agreed on. The value of 5.0 sits at the point where class balance has become tolerable at 24.7\% and the quality curve has begun to flatten. It is a defensible compromise rather than an optimum, and we state it as such.
 
-Note that the record counts in this table are from the non-equalised voting procedure, which is why 5.0 yields 953 records here against the 787 reported in the main paper. The equalisation step, which downsamples the TVAE pool before voting, is applied afterwards and reduces the count while improving fidelity.
+Note that the record counts in this table are from the non-equalised voting procedure, which is why 5.0 yields 953 records here against the 787 reported in the main paper. The equalisation step, which downsamples the VAE pool before voting, is applied afterwards and reduces the count while improving fidelity.
 
 % ===============================================================
 \section{Extended Privacy Analyses}
 
 \subsection{Output Perturbation}
 
-The filtered TVAE pool carries a 35.7\% near-duplicate rate, meaning more than one generated record in three sits closer to a real training patient than the 5th-percentile real-to-real distance. Releasing such a set would be indefensible. Table~\ref{tab:perturb} reports a sweep of post-hoc Gaussian perturbation applied to the eleven continuous features, with $\sigma$ expressed in units of each feature's training standard deviation.
+The filtered VAE pool carries a 35.7\% near-duplicate rate, meaning more than one generated record in three sits closer to a real training patient than the 5th-percentile real-to-real distance. Releasing such a set would be indefensible. Table~\ref{tab:perturb} reports a sweep of post-hoc Gaussian perturbation applied to the eleven continuous features, with $\sigma$ expressed in units of each feature's training standard deviation.
 
 \begin{table}[!tb]
   \centering
-  \caption{Gaussian Output Perturbation Applied to the Filtered TVAE Pool ($n = 499$)}
+  \caption{Gaussian Output Perturbation Applied to the Filtered VAE Pool ($n = 499$)}
   \label{tab:perturb}
   \begin{tabular}{cccc}
     \toprule
@@ -274,7 +278,7 @@ The filtered TVAE pool carries a 35.7\% near-duplicate rate, meaning more than o
 
 Both columns improve together, which is not what one would expect. Adding noise to synthetic records normally buys privacy at the cost of fidelity; here FID improves from 0.2280 to 0.0481 while the near-duplicate rate falls from 35.7\% to 1.4\%.
 
-The reason is specific to how the TVAE fails. It does not produce a broadly correct distribution with a few risky records; it produces records clustered tightly around particular real patients, which is simultaneously why its near-duplicate rate is high and why its marginal distributions are too narrow. Perturbation attacks both problems at once, dispersing the clusters away from individual patients and widening the marginals back towards the real spread. The improvement is therefore a correction of a specific defect rather than a general free lunch, and it should not be expected to transfer to a generator whose failure mode is different.
+The reason is specific to how the VAE fails. It does not produce a broadly correct distribution with a few risky records; it produces records clustered tightly around particular real patients, which is simultaneously why its near-duplicate rate is high and why its marginal distributions are too narrow. Perturbation attacks both problems at once, dispersing the clusters away from individual patients and widening the marginals back towards the real spread. The improvement is therefore a correction of a specific defect rather than a general free lunch, and it should not be expected to transfer to a generator whose failure mode is different.
 
 We select $\sigma = 0.7$ rather than 1.0 because it already clears any reasonable near-duplicate target at 1.4\%, and pushing further begins to distort a distribution that has by then been corrected.
 
@@ -358,14 +362,14 @@ The pattern is the same in all five. Every scenario and classifier combination c
 \begin{figure*}[!t]
   \centering
   \includegraphics[width=0.98\textwidth]{figS02_training_losses.png}
-  \caption{Training loss curves. Left: Vanilla GAN generator and discriminator losses over 500 epochs. Centre: conditional GAN losses over 300 epochs. Right: TVAE evidence lower bound over 300 epochs. The adversarial losses settle without sustained oscillation, indicating that mode collapse did not occur, and the TVAE objective levels off well before its epoch budget is exhausted.}
+  \caption{Training loss curves. Left: Vanilla GAN generator and discriminator losses over 500 epochs. Centre: conditional GAN losses over 300 epochs. Right: VAE evidence lower bound over 300 epochs. The adversarial losses settle without sustained oscillation, indicating that mode collapse did not occur, and the VAE objective levels off well before its epoch budget is exhausted.}
   \label{figS:training}
 \end{figure*}
 
 \begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{figS03_distribution_comparison.png}
-  \caption{Marginal distributions of six representative biomarkers for real training data and all four synthetic datasets. GAN and cGAN reproduce Albumin and Prothrombin closely. All methods diverge on the heavily right-skewed Bilirubin and Cholesterol, and the TVAE distribution for Bilirubin is shifted noticeably rightward, matching the KS statistics in Table~\ref{tab:ks}.}
+  \caption{Marginal distributions of six representative biomarkers for real training data and all four synthetic datasets. GAN and cGAN reproduce Albumin and Prothrombin closely. All methods diverge on the heavily right-skewed Bilirubin and Cholesterol, and the VAE distribution for Bilirubin is shifted noticeably rightward, matching the KS statistics in Table~\ref{tab:ks}.}
   \label{figS:distributions}
 \end{figure}
 
@@ -379,7 +383,7 @@ The pattern is the same in all five. Every scenario and classifier combination c
 \begin{figure}[!tb]
   \centering
   \includegraphics[width=\columnwidth]{figS05_tsne_projection.png}
-  \caption{t-SNE projection of real patients and each synthetic method from the original 18-dimensional feature space. Filtered GAN and cGAN records overlap the real manifold. TVAE records spread beyond the real density contours. The consensus set concentrates in the central high-density region, which explains both its favourable distributional scores and its elevated near-duplicate rate of 21.1\% reported in Table~II of the main paper.}
+  \caption{t-SNE projection of real patients and each synthetic method from the original 18-dimensional feature space. Filtered GAN and cGAN records overlap the real manifold. VAE records spread beyond the real density contours. The consensus set concentrates in the central high-density region, which explains both its favourable distributional scores and its elevated near-duplicate rate of 21.1\% reported in Table~II of the main paper.}
   \label{figS:tsne}
 \end{figure}
 
