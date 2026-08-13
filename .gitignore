@@ -35,3 +35,7 @@ output/data/
 paper/*.docx
 
 meeting_brief.pdf
+
+latest.pdf
+final_*.pdf
+compiled.pdf
