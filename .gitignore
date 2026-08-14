@@ -39,3 +39,6 @@ meeting_brief.pdf
 latest.pdf
 final_*.pdf
 compiled.pdf
+
+# Compiled PDFs dropped in the project root for inspection
+/*.pdf
