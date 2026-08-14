@@ -79,7 +79,7 @@ All features are scaled to $[0,1]$ with a MinMaxScaler fitted \emph{only} on the
 Fig.~\ref{figS:corrmatrix} shows the correlation structure of the cohort the generative models are asked to reproduce. Bilirubin sits at the centre of a cluster of correlated markers of hepatic function, and N\_Days runs against them, which is the structure any useful synthetic record must preserve.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{figS01_correlation_matrix.png}
+  \includegraphics[width=0.68\linewidth]{figS01_correlation_matrix.png}
   \caption{Pearson correlation matrix across all 276 complete cases. Bilirubin correlates positively with Copper ($r = 0.46$), SGOT ($r = 0.42$), Cholesterol ($r = 0.39$) and Prothrombin ($r = 0.33$), reflecting the interlinked nature of hepatic synthetic and excretory function in PBC. N\_Days correlates negatively with Bilirubin ($r = -0.43$) and Copper ($r = -0.36$), consistent with more severe biochemical profiles being associated with shorter survival.}
   \label{figS:corrmatrix}
 \end{figure}
@@ -252,7 +252,7 @@ Three figures make the tables above visible. Fig.~\ref{figS:distributions} plots
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{figS03_distribution_comparison.png}
+  \includegraphics[width=0.88\linewidth]{figS03_distribution_comparison.png}
   \caption{Marginal distributions of six representative biomarkers for real training data and all four synthetic datasets. GAN and cGAN reproduce Albumin and Prothrombin closely. All methods diverge on the heavily right-skewed Bilirubin and Cholesterol, and the VAE distribution for Bilirubin is shifted noticeably rightward, matching the KS statistics in Table~\ref{tab:ks}.}
   \label{figS:distributions}
 \end{figure}
@@ -270,7 +270,7 @@ Fig.~\ref{figS:tsne} projects real and synthetic records into two dimensions. Th
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{figS05_tsne_projection.png}
+  \includegraphics[width=0.58\linewidth]{figS05_tsne_projection.png}
   \caption{t-SNE projection of real patients and each synthetic method from the original 18-dimensional feature space. Filtered GAN and cGAN records overlap the real manifold. VAE records spread beyond the real density contours. The consensus set concentrates in the central high-density region, which explains both its favourable distributional scores and its elevated near-duplicate rate of 21.1\% reported in Table~II of the main paper.}
   \label{figS:tsne}
 \end{figure}
