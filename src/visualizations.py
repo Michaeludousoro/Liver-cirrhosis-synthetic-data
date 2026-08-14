@@ -383,6 +383,9 @@ def plot_consensus_distribution(source_counts):
                     str(v), ha="center", va="bottom", fontsize=10*_PRINT_SCALE)
     ax_bar.set_ylabel("Number of consensus records")
     ax_bar.set_title("Records contributed per method")
+    # Headroom above the tallest bar so its value label does not collide with
+    # the top y-tick or run over the axis frame.
+    ax_bar.set_ylim(0, max(counts) * 1.18)
 
     wedge_style = {"linewidth": 1.5, "edgecolor": "white"}
     ax_pie.pie(counts, labels=labels, colors=colors,
