@@ -22,12 +22,21 @@
 \setlength{\textfloatsep}{8pt plus 2pt minus 4pt}
 \setlength{\floatsep}{6pt plus 2pt minus 2pt}
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
-\renewcommand{\topfraction}{0.9}
-\renewcommand{\bottomfraction}{0.8}
-\renewcommand{\textfraction}{0.07}
-\renewcommand{\floatpagefraction}{0.85}
-\renewcommand{\dbltopfraction}{0.9}
-\renewcommand{\dblfloatpagefraction}{0.85}
+% Float placement. These govern how much of a page LaTeX may fill with floats.
+% The earlier values (textfraction 0.07, topfraction 0.9) permitted pages that
+% were almost entirely figures, which is what produced the figure-dump pages.
+% textfraction is the key one: it is the minimum share of a page that must be
+% body text before LaTeX is allowed to place a float there.
+\renewcommand{\topfraction}{0.70}          % max share of a page top used by floats
+\renewcommand{\bottomfraction}{0.45}
+\renewcommand{\textfraction}{0.25}         % at least a quarter of the page must be text
+\renewcommand{\floatpagefraction}{0.70}    % a float-only page must be 70% full to be allowed
+\renewcommand{\dbltopfraction}{0.70}
+\renewcommand{\dblfloatpagefraction}{0.70}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
+\setcounter{dbltopnumber}{1}                % at most one full-width float per page top
 
 % ---------------------------------------------------------------
 % Document

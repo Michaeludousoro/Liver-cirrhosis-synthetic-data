@@ -259,9 +259,12 @@ def plot_iqr_filtering(real_df, raw_synthetics, filtered_synthetics,
         ax.set_title(method)
         ax.set_xlabel(col + " (mg/dL)")
         ax.set_ylabel("Density")
-        ax.legend(fontsize=8*_PRINT_SCALE)
+        # legend drawn once for the whole figure, below the panels
 
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=3,
+               fontsize=7.5*_PRINT_SCALE, frameon=False, bbox_to_anchor=(0.5, -0.04))
+    fig.tight_layout(rect=[0, 0.07, 1, 1])
     _save_figure(fig, "fig2_iqr_filtering.png")
 
 

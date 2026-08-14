@@ -1,4 +1,4 @@
-\documentclass[journal]{IEEEtran}
+\documentclass[journal,onecolumn]{IEEEtran}
 
 % ---------------------------------------------------------------
 % Packages
@@ -14,6 +14,22 @@
 \usepackage{hyperref}
 \usepackage{float}
 \usepackage{placeins}
+
+% Float placement. These govern how much of a page LaTeX may fill with floats.
+% The earlier values (textfraction 0.07, topfraction 0.9) permitted pages that
+% were almost entirely figures, which is what produced the figure-dump pages.
+% textfraction is the key one: it is the minimum share of a page that must be
+% body text before LaTeX is allowed to place a float there.
+\renewcommand{\topfraction}{0.70}          % max share of a page top used by floats
+\renewcommand{\bottomfraction}{0.45}
+\renewcommand{\textfraction}{0.25}         % at least a quarter of the page must be text
+\renewcommand{\floatpagefraction}{0.70}    % a float-only page must be 70% full to be allowed
+\renewcommand{\dbltopfraction}{0.70}
+\renewcommand{\dblfloatpagefraction}{0.70}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
+\setcounter{dbltopnumber}{1}                % at most one full-width float per page top
 
 \graphicspath{{figures_supplementary/}}
 
@@ -65,7 +81,7 @@ All features are scaled to $[0,1]$ with a MinMaxScaler fitted \emph{only} on the
 
 Table~\ref{tab:arch} gives the complete specification of all three models. All are implemented directly in TensorFlow~2.15 without third-party synthetic-data libraries, which means every architectural choice is visible and auditable rather than inherited from a package default.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Complete Architecture and Optimiser Settings for the Three Generative Models}
   \label{tab:arch}
@@ -118,7 +134,7 @@ The main paper summarises distributional fidelity with a single aggregate FID pe
 
 Table~\ref{tab:ks} gives the two-sample KS statistic between each synthetic pool and the real training data, for all 11 continuous features.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Two-Sample Kolmogorov-Smirnov Statistics Against Real Training Data. Lower is Better. An Asterisk Marks a Statistically Significant Difference at $\alpha = 0.05$}
   \label{tab:ks}
@@ -151,7 +167,7 @@ The consensus set behaves differently from either of its parents. It is signific
 
 Table~\ref{tab:jsd} reports the Jensen-Shannon divergence per feature, which is bounded in $[0,1]$ and, unlike the KS statistic, is sensitive to differences across the whole distribution rather than at the point of maximum separation.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Jensen-Shannon Divergence Between Synthetic and Real Training Distributions. Lower is Better}
   \label{tab:jsd}
@@ -182,7 +198,7 @@ The divergence measure tells a cleaner story than the KS test. The VAE is betwee
 
 Table~\ref{tab:cohens} gives Cohen's $d$ between each synthetic pool and the real training data. A positive value means the synthetic mean exceeds the real mean.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Cohen's $d$ Between Synthetic and Real Training Data. Values Near Zero Indicate Well-Matched Means}
   \label{tab:cohens}
@@ -222,7 +238,7 @@ Fig.~\ref{figS:corrmatrix} shows the correlation structure of the real cohort, w
 
 The consensus tolerance of 5.0 standardised units is the single most consequential free parameter in the pipeline, so it was selected by a systematic sweep rather than by inspection. Table~\ref{tab:threshold} reports the sweep across eight values.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Consensus Tolerance Sweep. Composition Percentages Are Shares of the Accepted Set. The Real Training Cohort Is 40.4\% Deceased}
   \label{tab:threshold}
@@ -257,7 +273,7 @@ Note that the record counts in this table are from the non-equalised voting proc
 
 The filtered VAE pool carries a 35.7\% near-duplicate rate, meaning more than one generated record in three sits closer to a real training patient than the 5th-percentile real-to-real distance. Releasing such a set would be indefensible. Table~\ref{tab:perturb} reports a sweep of post-hoc Gaussian perturbation applied to the eleven continuous features, with $\sigma$ expressed in units of each feature's training standard deviation.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Gaussian Output Perturbation Applied to the Filtered VAE Pool ($n = 499$)}
   \label{tab:perturb}
@@ -286,7 +302,7 @@ We select $\sigma = 0.7$ rather than 1.0 because it already clears any reasonabl
 
 Table~\ref{tab:dpsgd} reports estimated privacy budgets for differentially private stochastic gradient descent at $\delta = 10^{-5}$, across noise multipliers from 0.5 to 3.0, for the $n = 193$ training cohort.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Estimated DP-SGD Privacy Budget at $\delta = 10^{-5}$ for $n = 193$ Training Patients}
   \label{tab:dpsgd}
@@ -316,7 +332,7 @@ Both analyses in this section are plotted together as Fig.~10 of the main manusc
 
 Table~\ref{tab:subgroup} reports test-set AUC within six clinical strata, comparing the real-only baseline against consensus augmentation. Each cell gives Scenario~A followed by Scenario~C.
 
-\begin{table}[!tb]
+\begin{table}[H]
   \centering
   \caption{Subgroup Test-Set AUC, Reported as Scenario A / Scenario C. Subgroups Below $n = 20$ Are Reported for Completeness Only}
   \label{tab:subgroup}
@@ -352,75 +368,75 @@ The pattern is the same in all five. Every scenario and classifier combination c
 % ===============================================================
 \section{Supplementary Figures}
 
-\begin{figure}[!tb]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\columnwidth]{figS01_correlation_matrix.png}
+  \includegraphics[width=\linewidth]{figS01_correlation_matrix.png}
   \caption{Pearson correlation matrix across all 276 complete cases. Bilirubin correlates positively with Copper ($r = 0.46$), SGOT ($r = 0.42$), Cholesterol ($r = 0.39$) and Prothrombin ($r = 0.33$), reflecting the interlinked nature of hepatic synthetic and excretory function in PBC. N\_Days correlates negatively with Bilirubin ($r = -0.43$) and Copper ($r = -0.36$), consistent with more severe biochemical profiles being associated with shorter survival.}
   \label{figS:corrmatrix}
 \end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS02_training_losses.png}
+  \includegraphics[width=\linewidth]{figS02_training_losses.png}
   \caption{Training loss curves. Left: Vanilla GAN generator and discriminator losses over 500 epochs. Centre: conditional GAN losses over 300 epochs. Right: VAE evidence lower bound over 300 epochs. The adversarial losses settle without sustained oscillation, indicating that mode collapse did not occur, and the VAE objective levels off well before its epoch budget is exhausted.}
   \label{figS:training}
-\end{figure*}
+\end{figure}
 
-\begin{figure}[!tb]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\columnwidth]{figS03_distribution_comparison.png}
+  \includegraphics[width=\linewidth]{figS03_distribution_comparison.png}
   \caption{Marginal distributions of six representative biomarkers for real training data and all four synthetic datasets. GAN and cGAN reproduce Albumin and Prothrombin closely. All methods diverge on the heavily right-skewed Bilirubin and Cholesterol, and the VAE distribution for Bilirubin is shifted noticeably rightward, matching the KS statistics in Table~\ref{tab:ks}.}
   \label{figS:distributions}
 \end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS04_correlation_heatmap.png}
+  \includegraphics[width=\linewidth]{figS04_correlation_heatmap.png}
   \caption{Pearson correlation structure of real training data (left) against the equalised consensus set (right). Dominant clinical associations are preserved, including the positive Bilirubin-Copper and negative N\_Days-Bilirubin relationships, while weaker correlations are attenuated.}
   \label{figS:corrcomparison}
-\end{figure*}
+\end{figure}
 
-\begin{figure}[!tb]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\columnwidth]{figS05_tsne_projection.png}
+  \includegraphics[width=\linewidth]{figS05_tsne_projection.png}
   \caption{t-SNE projection of real patients and each synthetic method from the original 18-dimensional feature space. Filtered GAN and cGAN records overlap the real manifold. VAE records spread beyond the real density contours. The consensus set concentrates in the central high-density region, which explains both its favourable distributional scores and its elevated near-duplicate rate of 21.1\% reported in Table~II of the main paper.}
   \label{figS:tsne}
 \end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS06_pr_curves.png}
+  \includegraphics[width=\linewidth]{figS06_pr_curves.png}
   \caption{Precision-Recall curves by classifier and training scenario on the 83-patient real held-out test set. PR curves are informative for this cohort given its class imbalance of 78 deceased against 115 survivors in the training set. All classifiers hold precision above 0.7 across a wide recall range.}
   \label{figS:prcurves}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS07_auc_comparison.png}
+  \includegraphics[width=\linewidth]{figS07_auc_comparison.png}
   \caption{AUC across all three classifiers for scenarios A, B and C. The green dashed line marks AUC~$= 0.8$ and the red dashed line marks AUC~$= 0.5$. Every combination clears 0.8. Gradient Boosting under Scenario~A achieves the highest AUC at 0.878.}
   \label{figS:auc}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS08_performance_heatmap.png}
+  \includegraphics[width=\linewidth]{figS08_performance_heatmap.png}
   \caption{F1-score heatmap across training scenarios; darker shading indicates higher F1. Gradient Boosting under Scenario~D achieves the highest F1 at 0.809. Under Scenario~C, Gradient Boosting falls to 0.726 and Random Forest to 0.738 while Logistic Regression rises to 0.785, showing that consensus augmentation does not move all classifiers in the same direction.}
   \label{figS:heatmap}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS09_model_comparison.png}
+  \includegraphics[width=\linewidth]{figS09_model_comparison.png}
   \caption{Grouped comparison of accuracy, F1 and AUC across all training scenarios and classifiers. No augmentation scenario uniformly outperforms the real-data baseline.}
   \label{figS:modelcomp}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.98\textwidth]{figS10_all_metrics.png}
+  \includegraphics[width=\linewidth]{figS10_all_metrics.png}
   \caption{All five evaluation metrics across training scenarios for each classifier. Trajectories are flat or slightly declining from Scenario~A through Scenarios~B and~C, with Scenario~D producing a modest accuracy gain for Gradient Boosting only.}
   \label{figS:allmetrics}
-\end{figure*}
+\end{figure}
 
 \FloatBarrier
 
