@@ -1,10 +1,10 @@
 Scenario,Classifier,n_train,Accuracy,F1,AUC
-A: Baseline (193 real),Random Forest,193,0.7831,0.7848,0.8479
-A: Baseline (193 real),Gradient Boosting,193,0.7831,0.7852,0.8776
-A: Baseline (193 real),Logistic Regression,193,0.7711,0.7735,0.8291
-F: Real + masked-VAE synthetic,Random Forest,550,0.7831,0.7848,0.8552
-F: Real + masked-VAE synthetic,Gradient Boosting,550,0.8072,0.8081,0.8509
-F: Real + masked-VAE synthetic,Logistic Regression,550,0.7229,0.7257,0.8097
-G: Real + 142 imputed partial,Random Forest,335,0.7952,0.797,0.8494
-G: Real + 142 imputed partial,Gradient Boosting,335,0.759,0.7616,0.8545
-G: Real + 142 imputed partial,Logistic Regression,335,0.7952,0.7973,0.8515
+A: Baseline (193 real),Random Forest,193,0.7831,0.7848,0.8324
+A: Baseline (193 real),Gradient Boosting,193,0.7831,0.7848,0.8297
+A: Baseline (193 real),Logistic Regression,193,0.8193,0.8204,0.8424
+F: Real + masked-VAE synthetic,Random Forest,550,0.8434,0.8429,0.8676
+F: Real + masked-VAE synthetic,Gradient Boosting,550,0.7831,0.7841,0.8461
+F: Real + masked-VAE synthetic,Logistic Regression,550,0.747,0.7486,0.8242
+G: Real + 142 imputed partial,Random Forest,335,0.7952,0.797,0.8379
+G: Real + 142 imputed partial,Gradient Boosting,335,0.8072,0.8087,0.8515
+G: Real + 142 imputed partial,Logistic Regression,335,0.8072,0.8087,0.8606

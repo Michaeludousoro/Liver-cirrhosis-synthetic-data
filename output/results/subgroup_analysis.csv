@@ -1,37 +1,37 @@
 Subgroup,n,Deceased,Scenario,Classifier,AUC
-Early stage (1-2),17,4,A: Real only,Random Forest,0.5577
-Early stage (1-2),17,4,A: Real only,Gradient Boosting,0.6538
-Early stage (1-2),17,4,A: Real only,Logistic Regression,0.5769
-Early stage (1-2),17,4,C: Real + Consensus,Random Forest,0.5769
-Early stage (1-2),17,4,C: Real + Consensus,Gradient Boosting,0.5769
+Early stage (1-2),17,4,A: Real only,Random Forest,0.5865
+Early stage (1-2),17,4,A: Real only,Gradient Boosting,0.6154
+Early stage (1-2),17,4,A: Real only,Logistic Regression,0.6346
+Early stage (1-2),17,4,C: Real + Consensus,Random Forest,0.5962
+Early stage (1-2),17,4,C: Real + Consensus,Gradient Boosting,0.5962
 Early stage (1-2),17,4,C: Real + Consensus,Logistic Regression,0.6538
-Late stage (3-4),66,29,A: Real only,Random Forest,0.8835
-Late stage (3-4),66,29,A: Real only,Gradient Boosting,0.9236
-Late stage (3-4),66,29,A: Real only,Logistic Regression,0.8723
-Late stage (3-4),66,29,C: Real + Consensus,Random Forest,0.8658
-Late stage (3-4),66,29,C: Real + Consensus,Gradient Boosting,0.9021
-Late stage (3-4),66,29,C: Real + Consensus,Logistic Regression,0.8639
-Female,72,27,A: Real only,Random Forest,0.8395
-Female,72,27,A: Real only,Gradient Boosting,0.8889
-Female,72,27,A: Real only,Logistic Regression,0.8469
+Late stage (3-4),66,29,A: Real only,Random Forest,0.8476
+Late stage (3-4),66,29,A: Real only,Gradient Boosting,0.8565
+Late stage (3-4),66,29,A: Real only,Logistic Regression,0.863
+Late stage (3-4),66,29,C: Real + Consensus,Random Forest,0.8518
+Late stage (3-4),66,29,C: Real + Consensus,Gradient Boosting,0.8593
+Late stage (3-4),66,29,C: Real + Consensus,Logistic Regression,0.8593
+Female,72,27,A: Real only,Random Forest,0.8391
+Female,72,27,A: Real only,Gradient Boosting,0.8428
+Female,72,27,A: Real only,Logistic Regression,0.8444
 Female,72,27,C: Real + Consensus,Random Forest,0.8354
-Female,72,27,C: Real + Consensus,Gradient Boosting,0.8494
-Female,72,27,C: Real + Consensus,Logistic Regression,0.8272
-Male,11,6,A: Real only,Random Forest,0.8333
-Male,11,6,A: Real only,Gradient Boosting,0.8667
-Male,11,6,A: Real only,Logistic Regression,0.6667
-Male,11,6,C: Real + Consensus,Random Forest,0.6167
-Male,11,6,C: Real + Consensus,Gradient Boosting,0.9
-Male,11,6,C: Real + Consensus,Logistic Regression,0.8333
-D-penicillamine,39,17,A: Real only,Random Forest,0.7727
-D-penicillamine,39,17,A: Real only,Gradient Boosting,0.8182
-D-penicillamine,39,17,A: Real only,Logistic Regression,0.8235
-D-penicillamine,39,17,C: Real + Consensus,Random Forest,0.734
-D-penicillamine,39,17,C: Real + Consensus,Gradient Boosting,0.8128
-D-penicillamine,39,17,C: Real + Consensus,Logistic Regression,0.861
-Placebo,44,16,A: Real only,Random Forest,0.9085
-Placebo,44,16,A: Real only,Gradient Boosting,0.9375
-Placebo,44,16,A: Real only,Logistic Regression,0.8549
-Placebo,44,16,C: Real + Consensus,Random Forest,0.904
-Placebo,44,16,C: Real + Consensus,Gradient Boosting,0.8817
-Placebo,44,16,C: Real + Consensus,Logistic Regression,0.8482
+Female,72,27,C: Real + Consensus,Gradient Boosting,0.8313
+Female,72,27,C: Real + Consensus,Logistic Regression,0.8337
+Male,11,6,A: Real only,Random Forest,0.5167
+Male,11,6,A: Real only,Gradient Boosting,0.5333
+Male,11,6,A: Real only,Logistic Regression,0.6
+Male,11,6,C: Real + Consensus,Random Forest,0.5667
+Male,11,6,C: Real + Consensus,Gradient Boosting,0.6333
+Male,11,6,C: Real + Consensus,Logistic Regression,0.7667
+D-penicillamine,39,17,A: Real only,Random Forest,0.7647
+D-penicillamine,39,17,A: Real only,Gradient Boosting,0.7781
+D-penicillamine,39,17,A: Real only,Logistic Regression,0.8182
+D-penicillamine,39,17,C: Real + Consensus,Random Forest,0.7634
+D-penicillamine,39,17,C: Real + Consensus,Gradient Boosting,0.7754
+D-penicillamine,39,17,C: Real + Consensus,Logistic Regression,0.8556
+Placebo,44,16,A: Real only,Random Forest,0.8839
+Placebo,44,16,A: Real only,Gradient Boosting,0.8772
+Placebo,44,16,A: Real only,Logistic Regression,0.8527
+Placebo,44,16,C: Real + Consensus,Random Forest,0.8906
+Placebo,44,16,C: Real + Consensus,Gradient Boosting,0.8638
+Placebo,44,16,C: Real + Consensus,Logistic Regression,0.8415

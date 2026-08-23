@@ -1,0 +1,7 @@
+Generator,logrank_statistic,p_value,FID
+Vanilla GAN,2.9133,0.0879,0.0995
+cGAN,0.5289,0.467,0.0724
+VAE,11.7445,0.0006,0.228
+Masked-loss VAE,0.0832,0.773,0.0619
+CTGAN,4.3205,0.0377,0.1079
+Consensus,6.562,0.0104,0.0809

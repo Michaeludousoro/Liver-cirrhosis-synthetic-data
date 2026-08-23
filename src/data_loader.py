@@ -76,6 +76,62 @@ TARGET_COL = "Status"
 # All feature columns in the order they appear after preprocessing
 ALL_FEATURE_COLS = CONTINUOUS_COLS + BINARY_COLS + list(ORDINAL_COLS.keys())
 
+# N_Days is the follow-up duration used to derive Status (time to death,
+# transplant, or censoring): it is jointly defined with the outcome, not a
+# baseline covariate, so it must never be fed to a classifier predicting
+# Status. It remains a legitimate GENERATED quantity (the generative models
+# still learn to reproduce it, since it is needed for the landmark and
+# survival framings below) — it is excluded only from the classifier input
+# feature set.
+CLASSIFICATION_FEATURE_COLS = [c for c in ALL_FEATURE_COLS if c != "N_Days"]
+
+# Duration column used by the landmark and time-to-event survival framings.
+DURATION_COL = "N_Days"
+
+
+def landmark_label(df, horizon_days, duration_col=DURATION_COL, event_col=TARGET_COL):
+    """
+    Derive a fixed-horizon ("landmark") binary label from (duration, event).
+
+    A patient is usable for landmark classification only if we know their
+    status at the horizon: either they were observed for at least
+    `horizon_days` (in which case we know whether they were alive at the
+    horizon), or they died before the horizon (in which case the event is
+    known regardless of how long they would otherwise have been followed).
+    A patient censored or transplanted *before* the horizon is dropped,
+    because their status at the horizon is genuinely unknown — including
+    them either way would silently reintroduce the same censoring problem
+    the horizon reframing exists to avoid.
+
+    This function is deliberately generic over `duration_col`/`event_col`
+    so it can be applied identically to real patient frames and to
+    generator output (synthetic N_Days/Status), keeping the label
+    definition consistent between the real and synthetic sides of every
+    scenario.
+
+    Parameters
+    ----------
+    df           : DataFrame containing at least duration_col and event_col
+    horizon_days : landmark horizon in days (e.g. 3 * 365.25 for 3 years)
+    duration_col : name of the follow-up-duration column (default N_Days)
+    event_col    : name of the binary event column, 1 = event (default Status)
+
+    Returns
+    -------
+    usable : boolean Series, True for rows retained under this horizon
+    label  : integer Series (only meaningful where usable is True), 1 if the
+             event occurred before the horizon, 0 if survival to the horizon
+             is confirmed
+    """
+    duration = df[duration_col]
+    event = df[event_col]
+
+    censored_before_horizon = (duration < horizon_days) & (event == 0)
+    usable = ~censored_before_horizon
+    label = ((duration < horizon_days) & (event == 1)).astype(int)
+
+    return usable, label
+
 
 def load_complete_data(raw_path=RAW_PATH):
     """

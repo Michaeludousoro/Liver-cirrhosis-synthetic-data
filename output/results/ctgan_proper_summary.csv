@@ -1,0 +1,2 @@
+Method,FID,n_samples,epochs,retention_pct
+CTGANProper (filtered),0.1079,204,4000,40.8

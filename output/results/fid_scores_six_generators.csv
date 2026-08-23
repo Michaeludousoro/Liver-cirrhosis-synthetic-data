@@ -1,0 +1,7 @@
+Generator,FID
+Vanilla GAN,0.0995
+cGAN,0.0724
+VAE,0.228
+Masked-loss VAE,0.0619
+CTGAN,0.1079
+Consensus,0.0809

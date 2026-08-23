@@ -1,0 +1,6 @@
+Scenario,n_train,C_index_Cox,C_index_RSF
+A: Baseline (real data only),193,0.8606,0.8612
+B: Real data plus filtered cGAN,485,0.8601,0.8584
+C: Real data plus consensus synthetic,980,0.847,0.8549
+D: Real data plus SMOTE-analog,230,0.8498,0.8669
+E: Synthetic data only (cGAN filtered),292,0.8385,0.8629

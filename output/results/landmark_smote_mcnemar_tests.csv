@@ -1,0 +1,4 @@
+Classifier,Scenario_baseline,Scenario_compare,n10,n01,p_value,Significant
+Random Forest,A: Baseline,D: Real + SMOTE,2,5,0.4531,No
+Gradient Boosting,A: Baseline,D: Real + SMOTE,5,2,0.4531,No
+Logistic Regression,A: Baseline,D: Real + SMOTE,8,5,0.5811,No

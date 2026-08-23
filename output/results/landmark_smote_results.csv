@@ -1,0 +1,4 @@
+Scenario,Classifier,n_train,Accuracy,F1,Precision,Recall,AUC
+D: Real data plus SMOTE,Random Forest,310,0.8553,0.8509,0.85,0.8553,0.874
+D: Real data plus SMOTE,Gradient Boosting,310,0.7895,0.775,0.7729,0.7895,0.8246
+D: Real data plus SMOTE,Logistic Regression,310,0.8289,0.8367,0.8588,0.8289,0.904

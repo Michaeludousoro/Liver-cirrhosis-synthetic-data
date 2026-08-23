@@ -66,7 +66,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from src.seeding import set_global_seeds
 from src.data_loader import (load_complete_data, split_data,
-                             ALL_FEATURE_COLS, TARGET_COL, CONTINUOUS_COLS,
+                             ALL_FEATURE_COLS, CLASSIFICATION_FEATURE_COLS,
+                             TARGET_COL, CONTINUOUS_COLS,
                              BINARY_COLS, ORDINAL_COLS, post_process_synthetic)
 from src.iqr_filter import compute_iqr_bounds, apply_iqr_filter
 
@@ -232,9 +233,14 @@ def classifiers():
 
 
 def evaluate(train_df, test_df, label, rows):
-    X_tr = train_df[ALL_FEATURE_COLS].values
+    # N_Days is jointly defined with Status and must not be a classifier
+    # input (see src/data_loader.CLASSIFICATION_FEATURE_COLS); this module
+    # still generates it, since it remains needed for the paper's separate
+    # landmark and survival framings, but excludes it here.
+    feat_cols = CLASSIFICATION_FEATURE_COLS
+    X_tr = train_df[feat_cols].values
     y_tr = np.round(train_df[TARGET_COL].values).astype(int)
-    X_te = test_df[ALL_FEATURE_COLS].values
+    X_te = test_df[feat_cols].values
     y_te = np.round(test_df[TARGET_COL].values).astype(int)
 
     sc = StandardScaler()

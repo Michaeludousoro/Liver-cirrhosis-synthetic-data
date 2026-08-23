@@ -1,0 +1,10 @@
+Scenario,Classifier,n_train,Accuracy,F1,Precision,Recall,AUC
+A: Baseline (193 real),Random Forest,193,0.7831,0.7848,0.7901,0.7831,0.8324
+A: Baseline (193 real),Gradient Boosting,193,0.7831,0.7848,0.7901,0.7831,0.8297
+A: Baseline (193 real),Logistic Regression,193,0.8193,0.8204,0.8237,0.8193,0.8424
+H: Real + 36 imputed same-protocol,Random Forest,229,0.7952,0.7965,0.7998,0.7952,0.8367
+H: Real + 36 imputed same-protocol,Gradient Boosting,229,0.7831,0.7848,0.7901,0.7831,0.8303
+H: Real + 36 imputed same-protocol,Logistic Regression,229,0.7831,0.7852,0.7955,0.7831,0.8491
+I: Real + synthetic-from-36-pool,Random Forest,536,0.7952,0.7946,0.7943,0.7952,0.8427
+I: Real + synthetic-from-36-pool,Gradient Boosting,536,0.7952,0.7957,0.7964,0.7952,0.8139
+I: Real + synthetic-from-36-pool,Logistic Regression,536,0.7711,0.7705,0.7701,0.7711,0.8115

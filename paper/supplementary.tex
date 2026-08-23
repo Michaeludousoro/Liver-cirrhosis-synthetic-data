@@ -46,10 +46,10 @@
 \begin{document}
 
 \title{Supplementary Material for\\
-``Evaluating Predictive Utility of Synthetic Liver Cirrhosis Data in IoMT: A Comparative Study of Adversarial and Variational Architectures with Consensus-Based Quality Filtering''}
+``Evaluating the Predictive Utility of Synthetic Liver Cirrhosis Data for IoMT: A Comparative Study of Adversarial and Variational Architectures with Consensus-Based Quality Filtering''}
 
-\author{\IEEEauthorblockN{Michael~Udousoro\IEEEauthorrefmark{1},~MSc,~Mohammad~Farhan~Khan\IEEEauthorrefmark{1},~\IEEEmembership{PhD, Senior Lecturer},~Fakhreldin~Saeed\IEEEauthorrefmark{1},~\IEEEmembership{PhD},~and~M.~Mursaleen\IEEEauthorrefmark{2}}
-\IEEEauthorblockA{\IEEEauthorrefmark{1}School of Computing, Engineering and the Built Environment, University of Roehampton, London, United Kingdom}
+\author{\IEEEauthorblockN{Michael~Udousoro\IEEEauthorrefmark{1},~Mohammad~Farhan~Khan\IEEEauthorrefmark{1},~Fakhreldin~Saeed\IEEEauthorrefmark{1},~and~M.~Mursaleen\IEEEauthorrefmark{2}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computing, School of Engineering, Computing and Design, University of Roehampton, London, United Kingdom}
 \IEEEauthorblockA{\IEEEauthorrefmark{2}Department of Medical Research, China Medical University Hospital, China Medical University, Taichung, Taiwan}}
 
 \maketitle
@@ -57,7 +57,7 @@
 % ===============================================================
 \section{Scope of This Document}
 
-The main manuscript reports the headline results within a strict page budget, which means a good deal of supporting detail had to be left out. This document supplies that detail. It is organised so that each section can be read on its own. The ten figures are cited directly from the main paper as Fig.~S1 to Fig.~S10; the eight tables, numbered Table~S1 to Table~S8, contain material that does not appear in the main paper at all.
+The main manuscript reports the headline results within a strict page budget, which means a good deal of supporting detail had to be left out. This document supplies that detail. It is organised so that each section can be read on its own. All sixteen figures are cited directly from the main paper as Fig.~S1 to Fig.~S16. The eight tables, numbered Table~S1 to Table~S8, contain material that does not appear in the main paper at all.
 
 Three kinds of material appear here. The first is methodological detail that a reader would need in order to reimplement the pipeline exactly: full architecture and optimiser settings, the preprocessing decisions, and the seeding regime that makes the results reproducible. The second is the complete per-feature statistical output. The main paper quotes a handful of Kolmogorov-Smirnov statistics to illustrate a pattern; Tables~\ref{tab:ks} to~\ref{tab:cohens} give all of them, for every feature and every generative method, so that the pattern can be checked rather than taken on trust. The third is the set of sensitivity and ablation analyses that justify particular parameter choices, chiefly the consensus tolerance of 5.0 and the output-perturbation level of $\sigma = 0.7$.
 
@@ -65,6 +65,8 @@ Nothing in this document changes any conclusion in the main paper. Where a numbe
 
 % ===============================================================
 \section{Extended Methodology}
+
+Fig.~\ref{figS:pipeline} gives an overview of the end-to-end pipeline referenced throughout this document and the main paper.
 
 \subsection{Dataset and Preprocessing}
 
@@ -121,7 +123,7 @@ Table~\ref{tab:arch} gives the complete specification of all three models. All a
 
 Both the cGAN and the VAE are named for what they are rather than after published models they resemble, and the distinction matters when comparing these results against the literature.
 
-The model labelled cGAN is a conditional GAN in the sense of Mirza and Osindero: it conditions generator and discriminator on the outcome label and nothing more. It is deliberately not called CTGAN, because it implements none of the three components that define the Conditional Tabular GAN of Xu et al., namely mode-specific normalisation, training-by-sampling, and a PacGAN critic with the Wasserstein gradient penalty. A full CTGAN was implemented separately and compared against it; that comparison is reported in Section~IV of the main paper, where CTGAN reaches FID 0.109 against 0.072 for the cGAN after 18{,}000 generator updates.
+The model labelled cGAN is a conditional GAN in the sense of Mirza and Osindero: it conditions generator and discriminator on the outcome label and nothing more. It is deliberately not called CTGAN, because it implements none of the three components that define the Conditional Tabular GAN of Xu et al., namely mode-specific normalisation, training-by-sampling, and a PacGAN critic with the Wasserstein gradient penalty. A full CTGAN was implemented separately and compared against it; that comparison is reported in Section~IV of the main paper, where CTGAN reaches FID 0.108 against 0.072 for the cGAN after 4{,}000 generator updates, likely short of full convergence at this cohort size.
 
 The model labelled VAE is likewise a standard variational autoencoder applied to min-max scaled tabular data. It is not the TVAE of Xu et al., which shares that paper's mode-specific normalisation, and results reported here should not be read as a benchmark of TVAE as originally specified.
 
@@ -247,7 +249,9 @@ The practical lesson generalises well beyond this dataset: a single fidelity met
 
 \subsection{Supporting Figures}
 
-Three figures make the tables above visible. Fig.~\ref{figS:distributions} plots the marginal distributions of six representative biomarkers side by side for all four synthetic datasets. It shows directly what the KS statistics in Table~\ref{tab:ks} quantify: the adversarial models track the real distribution closely on Albumin and Prothrombin, while every method struggles on the heavily right-skewed Bilirubin, and the VAE distribution is displaced rather than merely broadened.
+Fig.~\ref{figS:iqr} shows the IQR-based Tukey fence filter (Section~III of the main paper) in action on the Bilirubin distribution, the hardest continuous feature to reproduce faithfully.
+
+Four further figures make the tables above visible. Fig.~\ref{figS:distributions} plots the marginal distributions of six representative biomarkers side by side for all four synthetic datasets. It shows directly what the KS statistics in Table~\ref{tab:ks} quantify: the adversarial models track the real distribution closely on Albumin and Prothrombin, while every method struggles on the heavily right-skewed Bilirubin, and the VAE distribution is displaced rather than merely broadened.
 
 \begin{figure}[!tb]
   \centering
@@ -310,6 +314,8 @@ Note that the record counts in this table are from the non-equalised voting proc
 % ===============================================================
 \section{Extended Privacy Analyses}
 
+Fig.~\ref{figS:privacyrisk} gives the full nearest-neighbour privacy risk analysis referenced in Section~IV of the main paper (near-duplicate rates in Table~II there).
+
 \subsection{Output Perturbation}
 
 The filtered VAE pool carries a 35.7\% near-duplicate rate, meaning more than one generated record in three sits closer to a real training patient than the 5th-percentile real-to-real distance. Releasing such a set would be indefensible. Table~\ref{tab:perturb} reports a sweep of post-hoc Gaussian perturbation applied to the eleven continuous features, with $\sigma$ expressed in units of each feature's training standard deviation.
@@ -366,36 +372,36 @@ Values of $\varepsilon$ below roughly 10 are usually considered the threshold of
 
 This is why the main paper recommends output perturbation as the practical mitigation at this scale, and treats DP-SGD as an option that becomes available only once a cohort of several hundred patients has been assembled. Reporting a DP-SGD result at $\varepsilon = 14$ as though it constituted a privacy guarantee would be misleading, and we avoid doing so.
 
-Both analyses in this section are plotted together as Fig.~10 of the main manuscript, which is not reproduced here; the underlying numbers are those in Tables~\ref{tab:perturb} and~\ref{tab:dpsgd}.
+Both analyses in this section are plotted together in Fig.~\ref{figS:privacyenhance}.
 
 % ===============================================================
 \section{Subgroup Analysis}
 
-Table~\ref{tab:subgroup} reports test-set AUC within six clinical strata, comparing the real-only baseline against consensus augmentation. Each cell gives Scenario~A followed by Scenario~C.
+Table~\ref{tab:subgroup} reports test-set AUC within six clinical strata, comparing the real-only baseline against consensus augmentation, on the leak-free 17-feature input (N\_Days excluded). Each cell gives Scenario~A followed by Scenario~C.
 
 \begin{table}[!t]
   \centering
-  \caption{Subgroup Test-Set AUC, Reported as Scenario A / Scenario C. Subgroups Below $n = 20$ Are Reported for Completeness Only}
+  \caption{Subgroup Test-Set AUC, N\_Days Excluded, Reported as Scenario A / Scenario C. Subgroups Below $n = 20$ Are Reported for Completeness Only}
   \label{tab:subgroup}
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lccccc}
     \toprule
     Subgroup & $n$ & Dec. & RF & GB & LR \\
     \midrule
-    Early stage (1--2) & 17 & 4 & 0.558 / 0.577 & 0.654 / 0.577 & 0.577 / 0.654 \\
-    Late stage (3--4) & 66 & 29 & 0.883 / 0.866 & 0.924 / 0.902 & 0.872 / 0.864 \\
-    Female & 72 & 27 & 0.840 / 0.835 & 0.889 / 0.849 & 0.847 / 0.827 \\
-    Male & 11 & 6 & 0.833 / 0.617 & 0.867 / 0.900 & 0.667 / 0.833 \\
-    D-penicillamine & 39 & 17 & 0.773 / 0.734 & 0.818 / 0.813 & 0.824 / 0.861 \\
-    Placebo & 44 & 16 & 0.908 / 0.904 & 0.938 / 0.882 & 0.855 / 0.848 \\
+    Early stage (1--2) & 17 & 4 & 0.587 / 0.596 & 0.615 / 0.596 & 0.635 / 0.654 \\
+    Late stage (3--4) & 66 & 29 & 0.848 / 0.852 & 0.857 / 0.859 & 0.863 / 0.859 \\
+    Female & 72 & 27 & 0.839 / 0.835 & 0.843 / 0.831 & 0.844 / 0.834 \\
+    Male & 11 & 6 & 0.517 / 0.567 & 0.533 / 0.633 & 0.600 / 0.767 \\
+    D-penicillamine & 39 & 17 & 0.765 / 0.763 & 0.778 / 0.775 & 0.818 / 0.856 \\
+    Placebo & 44 & 16 & 0.884 / 0.891 & 0.877 / 0.864 & 0.853 / 0.842 \\
     \bottomrule
   \end{tabular}%
   }
 \end{table}
 
-Among the four subgroups large enough to support inference, the picture is consistent with the overall null result. Differences between Scenario~A and Scenario~C stay within about $\pm 0.06$, with no consistent direction, and every AUC exceeds 0.73. Augmentation neither helps nor harms in any stratum we can measure reliably.
+Among the four subgroups large enough to support inference, the picture is consistent with the overall null result. Differences between Scenario~A and Scenario~C stay within about $\pm 0.04$, with no consistent direction, and every AUC exceeds 0.76. Augmentation neither helps nor harms in any stratum we can measure reliably.
 
-The two small subgroups illustrate why we decline to interpret them. On the 11 male patients, Random Forest AUC moves from 0.833 to 0.617 while Gradient Boosting moves from 0.867 to 0.900 on the same patients under the same augmentation. Two classifiers cannot both be right about the direction of an effect; with six deceased patients in the subgroup, a single reordered prediction shifts AUC by several points. The early-stage subgroup, with 17 patients and four deceased, is equally unstable and additionally sits near chance for two of the three classifiers.
+The two small subgroups illustrate why we decline to interpret them. On the 11 male patients, all three classifiers move in the same direction this time (Random Forest 0.517 to 0.567, Gradient Boosting 0.533 to 0.633, Logistic Regression 0.600 to 0.767), which on six deceased patients is as consistent with a single reordered prediction shifting AUC by several points as with a real effect; the subgroup is too small to distinguish the two. The early-stage subgroup, with 17 patients and four deceased, is equally unstable and additionally sits near chance for all three classifiers.
 
 We report these rows rather than dropping them because selective omission of inconvenient strata is itself a reporting problem. But no weight should be placed on them, and a reader who wishes to cite a subgroup result should use the late-stage, female, or treatment-arm rows.
 
@@ -418,7 +424,7 @@ Fig.~\ref{figS:auc} compares AUC directly across scenarios. Every combination cl
 \begin{figure}[!tb]
   \centering
   \includegraphics[width=\linewidth]{figS07_auc_comparison.png}
-  \caption{AUC across all three classifiers for scenarios A, B and C. The green dashed line marks AUC~$= 0.8$ and the red dashed line marks AUC~$= 0.5$. Every combination clears 0.8. Gradient Boosting under Scenario~A achieves the highest AUC at 0.878.}
+  \caption{AUC across all three classifiers for scenarios A, B and C, N\_Days excluded from classifier input. The green dashed line marks AUC~$= 0.8$ and the red dashed line marks AUC~$= 0.5$. Every combination clears 0.8. Logistic Regression under Scenario~B achieves the highest AUC at 0.847.}
   \label{figS:auc}
 \end{figure}
 
@@ -427,7 +433,7 @@ Fig.~\ref{figS:heatmap} shows F1 as a heatmap, which makes the classifier-specif
 \begin{figure}[!tb]
   \centering
   \includegraphics[width=\linewidth]{figS08_performance_heatmap.png}
-  \caption{F1-score heatmap across training scenarios; darker shading indicates higher F1. Gradient Boosting under Scenario~D achieves the highest F1 at 0.809. Under Scenario~C, Gradient Boosting falls to 0.726 and Random Forest to 0.738 while Logistic Regression rises to 0.785, showing that consensus augmentation does not move all classifiers in the same direction.}
+  \caption{F1-score heatmap across training scenarios, N\_Days excluded from classifier input; darker shading indicates higher F1. Logistic Regression under Scenario~C achieves the highest F1 at 0.821. Under Scenario~C, Random Forest falls to 0.761 and Gradient Boosting to 0.714 while Logistic Regression is essentially unchanged (0.820 to 0.821), showing that consensus augmentation does not move all classifiers in the same direction.}
   \label{figS:heatmap}
 \end{figure}
 
@@ -445,8 +451,69 @@ The grouped view in Fig.~\ref{figS:modelcomp} holds accuracy, F1 and AUC side by
 \begin{figure}[!tb]
   \centering
   \includegraphics[width=\linewidth]{figS10_all_metrics.png}
-  \caption{All five evaluation metrics across training scenarios for each classifier. Trajectories are flat or slightly declining from Scenario~A through Scenarios~B and~C, with Scenario~D producing a modest accuracy gain for Gradient Boosting only.}
+  \caption{All five evaluation metrics across training scenarios for each classifier, N\_Days excluded from classifier input. Trajectories are flat or slightly declining from Scenario~A through Scenarios~B and~C, with Scenario~D (SMOTE) producing a modest accuracy gain for Random Forest only (0.783 to 0.795); Gradient Boosting and Logistic Regression both decline under Scenario~D.}
   \label{figS:allmetrics}
+\end{figure}
+
+% ===============================================================
+\section{Competing Risks: Death Versus Transplant}
+\label{sec:competingrisks}
+
+The survival-modelling framing in Section~IV of the main paper (Cox proportional hazards, Random Survival Forest) treats death as the event of interest and censors at transplantation, alongside patients alive at data cutoff. This is a cause-specific hazard for death, a standard and defensible choice when death is the endpoint of interest, but it assumes transplant timing carries no information about death risk beyond what the covariates capture, an assumption worth checking rather than asserting, since transplant priority is itself driven by disease severity.
+
+Of the 276 complete-case patients, 111 (40.2\%) died, 18 (6.5\%) received a transplant, and 147 (53.3\%) were censored alive at data cutoff. Fig.~\ref{figS:competingrisks} plots the non-parametric Aalen-Johansen cumulative incidence function for each competing event, which does not require the non-informative-censoring assumption the Cox/RSF analysis makes. Death dominates throughout follow-up: cumulative incidence reaches 64.2\% by the end of the observed follow-up window against 8.7\% for transplant, and the transplant curve stays near zero for the first roughly 500 days before rising gradually. Given how small the competing-event share is relative to the event of interest, censoring at transplant is unlikely to materially bias the cause-specific hazard estimates reported in the main paper, but a full competing-risks regression (e.g.\ a Fine-Gray subdistribution hazard model) would be needed to state that quantitatively rather than qualitatively; no Python package used in this pipeline currently implements one; \texttt{lifelines} provides the Aalen-Johansen estimator used here but not Fine-Gray regression.
+
+\begin{figure}[!tb]
+  \centering
+  \includegraphics[width=0.68\linewidth]{figS11_competing_risks.png}
+  \caption{Aalen-Johansen cumulative incidence of death and transplantation as competing events, computed on all 276 complete-case patients (shaded bands are 95\% confidence intervals). Death accounts for the large majority of observed events (64.2\% cumulative incidence by end of follow-up versus 8.7\% for transplant), supporting the cause-specific hazard treatment used in the main paper's survival framing while acknowledging it as a modelling choice rather than an assumption-free default.}
+  \label{figS:competingrisks}
+\end{figure}
+
+% ===============================================================
+\section{Kaplan-Meier Comparison Across Six Generators}
+\label{sec:kmcomparison}
+
+Section~IV of the main paper reports log-rank test statistics comparing each generator's synthetic (N\_Days, Status) distribution against the real training cohort, as a second check on whether FID predicts downstream utility. Fig.~\ref{figS:kmcomparison} gives the underlying Kaplan-Meier curves for all six generators.
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figS12_km_comparison.png}
+  \caption{Kaplan-Meier survival curves for each generator's synthetic (N\_Days, Status) pool (red) against the real training cohort (black), with log-rank test $p$-values. The masked-loss VAE and cGAN track the real curve closely; the VAE, CTGAN, and consensus diverge significantly, illustrating that FID does not isolate whether the joint time-to-event structure specifically is reproduced.}
+  \label{figS:kmcomparison}
+\end{figure*}
+
+% ===============================================================
+\section{Additional Supporting Figures}
+
+The four figures below are referenced from earlier sections of this document (Extended Methodology and Extended Privacy Analyses) and are placed together here to keep this document's figure numbering stable as material is added.
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figS13_iqr_filtering.png}
+  \caption{Effect of IQR-based Tukey fence filtering on the Bilirubin distribution for all three generative models. Grey bars show real patient density. Pink bars show unfiltered synthetic distribution; coloured bars show the post-filter distribution. The GAN and cGAN produce records extending beyond 15~mg/dL that the filter removes. The VAE retains all generated records but produces a distribution shifted rightward relative to real patients.}
+  \label{figS:iqr}
+\end{figure*}
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figS14_privacy_risk_analysis.png}
+  \caption{Privacy disclosure risk analysis using nearest-neighbour distances in standardised feature space. Left: violin plots of distances from each synthetic record to its closest real training patient. The red dashed line marks the risk threshold at the 5th percentile of real-to-real distances. GAN and cGAN distributions are centred above this threshold. Right: near-duplicate rates by method. GAN (7.3\%) and cGAN (9.6\%) present low privacy risk, VAE the highest at 35.7\%, and the equalised consensus set 21.1\%.}
+  \label{figS:privacyrisk}
+\end{figure*}
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figS15_privacy_enhancement.png}
+  \caption{VAE privacy enhancement analysis. Left: near-duplicate rate versus Gaussian output noise $\sigma$ (in feature standard-deviation units); at $\sigma = 0.7$ the rate falls from 35.7\% to 1.4\%, crossing the 5\% near-duplicate target. Centre: tabular FID score versus $\sigma$; FID improves from 0.228 to 0.0481, below the equalised consensus benchmark of 0.0809. Right: estimated DP-SGD privacy budget $\varepsilon$ versus noise multiplier at $\delta = 10^{-5}$; $\varepsilon$ remains above 14 even at a multiplier of 3.0, confirming that formal differential privacy is not achievable at $n = 193$.}
+  \label{figS:privacyenhance}
+\end{figure*}
+
+\begin{figure}[!tb]
+  \centering
+  \includegraphics[width=\linewidth]{figS16_pipeline_flowchart.png}
+  \caption{End-to-end synthetic data pipeline. The raw 418-patient dataset passes through a complete-case filter and a preprocessing stage before the 193-patient training set feeds three parallel generative models. Each model's 500 generated records pass through an IQR plausibility filter before all three filtered pools enter the consensus voting stage.}
+  \label{figS:pipeline}
 \end{figure}
 
 % ===============================================================

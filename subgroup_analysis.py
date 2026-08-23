@@ -49,7 +49,7 @@ from sklearn.linear_model   import LogisticRegression
 from sklearn.metrics        import roc_auc_score
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from src.data_loader import TARGET_COL, ALL_FEATURE_COLS
+from src.data_loader import TARGET_COL, CLASSIFICATION_FEATURE_COLS
 
 BASE     = os.path.dirname(os.path.abspath(__file__))
 DATA     = os.path.join(BASE, "output", "data")
@@ -58,7 +58,9 @@ FIGURES  = os.path.join(BASE, "output", "figures")
 os.makedirs(RESULTS, exist_ok=True)
 os.makedirs(FIGURES, exist_ok=True)
 
-feat = ALL_FEATURE_COLS
+# N_Days is jointly defined with Status and must not be a classifier input
+# (see src/data_loader.CLASSIFICATION_FEATURE_COLS).
+feat = CLASSIFICATION_FEATURE_COLS
 
 
 def load_data():

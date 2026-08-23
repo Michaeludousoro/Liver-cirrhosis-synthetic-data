@@ -1,0 +1,7 @@
+Classifier,Scenario_baseline,Scenario_compare,n10,n01,p_value,Significant
+Random Forest,A: Baseline,B: Real + cGAN,0,2,0.5,No
+Random Forest,A: Baseline,C: Real + Consensus,0,1,1.0,No
+Gradient Boosting,A: Baseline,B: Real + cGAN,1,1,1.0,No
+Gradient Boosting,A: Baseline,C: Real + Consensus,1,2,1.0,No
+Logistic Regression,A: Baseline,B: Real + cGAN,3,4,1.0,No
+Logistic Regression,A: Baseline,C: Real + Consensus,2,1,1.0,No

@@ -64,8 +64,17 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import jensenshannon
+from scipy.stats import binomtest
 
-from .data_loader import CONTINUOUS_COLS, BINARY_COLS, ORDINAL_COLS, TARGET_COL
+from sklearn.base import clone
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import roc_auc_score
+from imblearn.over_sampling import SMOTE
+
+from .data_loader import (CONTINUOUS_COLS, BINARY_COLS, ORDINAL_COLS,
+                          TARGET_COL, CLASSIFICATION_FEATURE_COLS)
+from .predictive_modeling import _build_classifiers
 
 
 def shapiro_wilk_normality(real_df, cols=None):
@@ -405,3 +414,226 @@ def run_all_statistical_tests(real_df, synthetic_dict):
         "cohens_d":      cohens,
         "chi_square":    chi,
     }
+
+
+# ---------------------------------------------------------------------
+# Predictive-utility inferential tests
+#
+# These three functions (cross_validate_scenarios, bootstrap_ci_scenarios,
+# mcnemar_scenarios) were previously implemented only as inline, copy-
+# pasted cells in 03_predictive_modeling_and_statistical_evaluation.ipynb
+# (cells 38, 40, 42), each redefining its own classifier dict and its own
+# feat_cols logic. They are extracted here, generalized over an explicit
+# scenario dict, so the same tested implementation can be reused for the
+# leak-fixed classification framing, the landmark framing, and any other
+# scenario set (e.g. six generators) without copy-pasting notebook cells
+# again. All three default feat_cols to CLASSIFICATION_FEATURE_COLS
+# (N_Days excluded) rather than ALL_FEATURE_COLS.
+# ---------------------------------------------------------------------
+
+def cross_validate_scenarios(train_real, scenario_augment, feat_cols=None,
+                              target_col=TARGET_COL, n_splits=5, random_state=42):
+    """
+    5-fold stratified cross-validation, folds drawn from real training
+    patients only. Synthetic augmentation (or SMOTE) is applied to the
+    TRAIN side of each fold; every validation fold contains real patients
+    exclusively, so no synthetic record ever leaks into validation.
+
+    Parameters
+    ----------
+    train_real       : real training patients (folds are drawn from this)
+    scenario_augment : dict {scenario_name: augment}, where augment is
+                        None (baseline, no augmentation), a DataFrame
+                        (synthetic pool concatenated to the train fold), or
+                        the string "smote" (SMOTE applied inside the fold)
+    feat_cols        : defaults to CLASSIFICATION_FEATURE_COLS
+    target_col       : defaults to TARGET_COL; pass "landmark_event" for
+                        the landmark framing
+
+    Returns
+    -------
+    cv_df : one row per (scenario, classifier), with Mean AUC, Std AUC,
+            and a naive Normal-approximation 95% CI (Mean +/- 1.96*Std)
+    """
+    if feat_cols is None:
+        feat_cols = CLASSIFICATION_FEATURE_COLS
+    feat_cols = [c for c in feat_cols if c in train_real.columns]
+
+    def combine_clean(*dfs):
+        combined = pd.concat(list(dfs), ignore_index=True)
+        return combined.dropna(subset=feat_cols + [target_col])
+
+    X_real = train_real[feat_cols].values
+    y_real = np.round(train_real[target_col].values).astype(int)
+
+    splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    records = []
+
+    for scenario_name, augment in scenario_augment.items():
+        for clf_name, base_clf in _build_classifiers().items():
+            fold_aucs = []
+            for tr_idx, va_idx in splitter.split(X_real, y_real):
+                X_va = X_real[va_idx]
+                y_va = y_real[va_idx]
+                real_tr = train_real.iloc[tr_idx]
+                scaler = StandardScaler()
+
+                if augment is None:
+                    X_tr_s = scaler.fit_transform(real_tr[feat_cols].values)
+                    y_tr = np.round(real_tr[target_col].values).astype(int)
+                elif isinstance(augment, str) and augment == "smote":
+                    X_tr_real = scaler.fit_transform(real_tr[feat_cols].values)
+                    y_tr_real = np.round(real_tr[target_col].values).astype(int)
+                    X_tr_s, y_tr = SMOTE(random_state=random_state).fit_resample(
+                        X_tr_real, y_tr_real)
+                else:
+                    tr_df = combine_clean(real_tr, augment)
+                    X_tr_s = scaler.fit_transform(tr_df[feat_cols].values)
+                    y_tr = np.round(tr_df[target_col].values).astype(int)
+
+                X_va_s = scaler.transform(X_va)
+                clf = clone(base_clf)
+                clf.fit(X_tr_s, y_tr)
+                fold_aucs.append(roc_auc_score(y_va, clf.predict_proba(X_va_s)[:, 1]))
+
+            mean_auc, std_auc = np.mean(fold_aucs), np.std(fold_aucs)
+            records.append({
+                "Scenario": scenario_name, "Classifier": clf_name,
+                "Mean AUC": round(mean_auc, 4), "Std AUC": round(std_auc, 4),
+                "CI Lower": round(mean_auc - 1.96 * std_auc, 4),
+                "CI Upper": round(mean_auc + 1.96 * std_auc, 4),
+            })
+
+    return pd.DataFrame(records)
+
+
+def bootstrap_ci_scenarios(scenario_train_dfs, test_real, feat_cols=None,
+                            target_col=TARGET_COL, n_boot=1000, random_state=42):
+    """
+    95% bootstrap confidence intervals for test-set AUC, one classifier
+    trained per (scenario, classifier) pair and evaluated on n_boot
+    resamples of the held-out real test set.
+
+    Parameters
+    ----------
+    scenario_train_dfs : dict {scenario_name: train_df}, already combined
+                          (e.g. real+cGAN concatenated) — one classifier
+                          fit per scenario, not per bootstrap resample
+    test_real           : real test patients
+    feat_cols, target_col : as elsewhere
+
+    Returns
+    -------
+    boot_df : one row per (scenario, classifier), with AUC, CI Lower, CI Upper
+    """
+    if feat_cols is None:
+        feat_cols = CLASSIFICATION_FEATURE_COLS
+    feat_cols = [c for c in feat_cols if c in test_real.columns]
+
+    X_test = test_real[feat_cols].values
+    y_test = np.round(test_real[target_col].values).astype(int)
+
+    trained_probs = {}
+    for scenario_name, train_df in scenario_train_dfs.items():
+        X_train = train_df[feat_cols].values
+        y_train = np.round(train_df[target_col].values).astype(int)
+        scaler = StandardScaler()
+        X_train_s = scaler.fit_transform(X_train)
+        X_test_s = scaler.transform(X_test)
+
+        trained_probs[scenario_name] = {}
+        for clf_name, clf in _build_classifiers().items():
+            clf.fit(X_train_s, y_train)
+            trained_probs[scenario_name][clf_name] = clf.predict_proba(X_test_s)[:, 1]
+
+    rng = np.random.RandomState(random_state)
+    n_te = len(y_test)
+    records = []
+
+    for scenario_name, probs_by_clf in trained_probs.items():
+        for clf_name, y_prob in probs_by_clf.items():
+            boot_aucs = []
+            for _ in range(n_boot):
+                idx = rng.randint(0, n_te, size=n_te)
+                y_b, yp_b = y_test[idx], y_prob[idx]
+                if len(np.unique(y_b)) < 2:
+                    continue
+                boot_aucs.append(roc_auc_score(y_b, yp_b))
+
+            point = roc_auc_score(y_test, y_prob)
+            records.append({
+                "Scenario": scenario_name, "Classifier": clf_name,
+                "AUC": round(point, 4),
+                "CI Lower": round(np.percentile(boot_aucs, 2.5), 4),
+                "CI Upper": round(np.percentile(boot_aucs, 97.5), 4),
+            })
+
+    return pd.DataFrame(records)
+
+
+def mcnemar_scenarios(scenario_train_dfs, test_real, baseline_name,
+                       feat_cols=None, target_col=TARGET_COL):
+    """
+    McNemar's exact test (via the exact binomial test on discordant pairs)
+    comparing every non-baseline scenario against the baseline scenario,
+    for each classifier.
+
+    Parameters
+    ----------
+    scenario_train_dfs : dict {scenario_name: train_df}, must include
+                          baseline_name as one of the keys
+    test_real            : real test patients
+    baseline_name        : key of the baseline scenario in scenario_train_dfs
+    feat_cols, target_col : as elsewhere
+
+    Returns
+    -------
+    mcnemar_df : one row per (classifier, compared scenario), with n10, n01
+                 (discordant pair counts) and the two-sided exact p-value
+    """
+    if feat_cols is None:
+        feat_cols = CLASSIFICATION_FEATURE_COLS
+    feat_cols = [c for c in feat_cols if c in test_real.columns]
+
+    X_test = test_real[feat_cols].values
+    y_test = np.round(test_real[target_col].values).astype(int)
+
+    def get_preds(train_df):
+        X_train = train_df[feat_cols].values
+        y_train = np.round(train_df[target_col].values).astype(int)
+        scaler = StandardScaler()
+        X_train_s = scaler.fit_transform(X_train)
+        X_test_s = scaler.transform(X_test)
+        out = {}
+        for clf_name, clf in _build_classifiers().items():
+            clf.fit(X_train_s, y_train)
+            out[clf_name] = clf.predict(X_test_s)
+        return out
+
+    preds_by_scenario = {name: get_preds(df) for name, df in scenario_train_dfs.items()}
+    preds_baseline = preds_by_scenario[baseline_name]
+
+    records = []
+    for clf_name in preds_baseline:
+        correct_baseline = (preds_baseline[clf_name] == y_test)
+        for scenario_name, preds in preds_by_scenario.items():
+            if scenario_name == baseline_name:
+                continue
+            correct_x = (preds[clf_name] == y_test)
+            n10 = int((correct_baseline & ~correct_x).sum())
+            n01 = int((~correct_baseline & correct_x).sum())
+            n = n10 + n01
+
+            p_val = 1.0 if n == 0 else binomtest(
+                min(n10, n01), n=n, p=0.5, alternative="two-sided").pvalue
+
+            records.append({
+                "Classifier": clf_name,
+                "Scenario_baseline": baseline_name,
+                "Scenario_compare": scenario_name,
+                "n10": n10, "n01": n01,
+                "p_value": round(p_val, 4),
+                "Significant": "Yes" if p_val < 0.05 else "No",
+            })
+
+    return pd.DataFrame(records)

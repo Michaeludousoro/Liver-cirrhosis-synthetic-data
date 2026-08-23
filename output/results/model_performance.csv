@@ -1,13 +1,13 @@
 Scenario,Classifier,n_train,Accuracy,F1,Precision,Recall,AUC
-A: Baseline (real data only),Random Forest,193,0.7831,0.7848,0.7901,0.7831,0.8479
-A: Baseline (real data only),Gradient Boosting,193,0.7831,0.7852,0.7955,0.7831,0.8776
-A: Baseline (real data only),Logistic Regression,193,0.7711,0.7735,0.794,0.7711,0.8291
-B: Real data plus filtered cGAN,Random Forest,485,0.7831,0.7848,0.7901,0.7831,0.8491
-B: Real data plus filtered cGAN,Gradient Boosting,485,0.759,0.7616,0.7782,0.759,0.8448
-B: Real data plus filtered cGAN,Logistic Regression,485,0.7349,0.7377,0.7617,0.7349,0.8345
-C: Real data plus consensus synthetic,Random Forest,980,0.7349,0.7375,0.7477,0.7349,0.8294
-C: Real data plus consensus synthetic,Gradient Boosting,980,0.7229,0.7258,0.7457,0.7229,0.8376
-C: Real data plus consensus synthetic,Logistic Regression,980,0.7831,0.7854,0.8022,0.7831,0.8503
-E: Synthetic data only (cGAN filtered),Random Forest,292,0.7108,0.7126,0.7556,0.7108,0.823
-E: Synthetic data only (cGAN filtered),Gradient Boosting,292,0.6265,0.6281,0.6718,0.6265,0.6842
-E: Synthetic data only (cGAN filtered),Logistic Regression,292,0.6627,0.6634,0.7152,0.6627,0.8376
+A: Baseline (real data only),Random Forest,193,0.7831,0.7848,0.7901,0.7831,0.8324
+A: Baseline (real data only),Gradient Boosting,193,0.7831,0.7848,0.7901,0.7831,0.8297
+A: Baseline (real data only),Logistic Regression,193,0.8193,0.8204,0.8237,0.8193,0.8424
+B: Real data plus filtered cGAN,Random Forest,485,0.7831,0.7848,0.7901,0.7831,0.837
+B: Real data plus filtered cGAN,Gradient Boosting,485,0.7952,0.7965,0.7998,0.7952,0.8085
+B: Real data plus filtered cGAN,Logistic Regression,485,0.759,0.7614,0.7716,0.759,0.8467
+C: Real data plus consensus synthetic,Random Forest,980,0.759,0.7614,0.7716,0.759,0.8321
+C: Real data plus consensus synthetic,Gradient Boosting,980,0.7108,0.7139,0.7301,0.7108,0.8176
+C: Real data plus consensus synthetic,Logistic Regression,980,0.8193,0.8211,0.8346,0.8193,0.8461
+E: Synthetic data only (cGAN filtered),Random Forest,292,0.6867,0.684,0.7672,0.6867,0.8091
+E: Synthetic data only (cGAN filtered),Gradient Boosting,292,0.6506,0.6506,0.7076,0.6506,0.6867
+E: Synthetic data only (cGAN filtered),Logistic Regression,292,0.6988,0.6988,0.76,0.6988,0.8485
