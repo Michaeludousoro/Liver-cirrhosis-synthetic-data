@@ -123,9 +123,9 @@ Table~\ref{tab:arch} gives the complete specification of all three models. All a
 
 Both the cGAN and the VAE are named for what they are rather than after published models they resemble, and the distinction matters when comparing these results against the literature.
 
-The model labelled cGAN is a conditional GAN in the sense of Mirza and Osindero: it conditions generator and discriminator on the outcome label and nothing more. It is deliberately not called CTGAN, because it implements none of the three components that define the Conditional Tabular GAN of Xu et al., namely mode-specific normalisation, training-by-sampling, and a PacGAN critic with the Wasserstein gradient penalty. A full CTGAN was implemented separately and compared against it; that comparison is reported in Section~IV of the main paper, where CTGAN reaches FID 0.108 against 0.072 for the cGAN after 4{,}000 generator updates, likely short of full convergence at this cohort size.
+The model labelled cGAN is a conditional GAN in the sense of Mirza and Osindero \cite{mirza2014}: it conditions generator and discriminator on the outcome label and nothing more. It is deliberately not called CTGAN, because it implements none of the three components that define the Conditional Tabular GAN of Xu et al.\ \cite{xu2019}, namely mode-specific normalisation, training-by-sampling, and a PacGAN critic with the Wasserstein gradient penalty. A full CTGAN was implemented separately and compared against it; that comparison is reported in Section~IV of the main paper, where CTGAN reaches FID 0.108 against 0.072 for the cGAN after 4{,}000 generator updates, likely short of full convergence at this cohort size.
 
-The model labelled VAE is likewise a standard variational autoencoder applied to min-max scaled tabular data. It is not the TVAE of Xu et al., which shares that paper's mode-specific normalisation, and results reported here should not be read as a benchmark of TVAE as originally specified.
+The model labelled VAE is likewise a standard variational autoencoder applied to min-max scaled tabular data. It is not the TVAE of Xu et al.\ \cite{xu2019}, which shares that paper's mode-specific normalisation, and results reported here should not be read as a benchmark of TVAE as originally specified.
 
 Training curves for all three models are shown in Fig.~\ref{figS:training}. The adversarial losses settle without the sustained oscillation that signals mode collapse, and the VAE evidence lower bound falls steeply before levelling off, so all three models reach convergence within their training budgets.
 \begin{figure}[!tb]
@@ -484,6 +484,11 @@ Section~IV of the main paper reports log-rank test statistics comparing each gen
 \end{figure*}
 
 % ===============================================================
+\section{Data and Code Availability}
+
+The Mayo Clinic PBC dataset is publicly available from the UCI Machine Learning Repository as ``Cirrhosis Patient Survival Prediction'' (doi:~10.24432/C5R02G), \url{https://archive.ics.uci.edu/dataset/878/cirrhosis+patient+survival+prediction}. All code required to reproduce every number and figure in the main paper and in this document is available at \url{https://github.com/Michaeludousoro/liver-cirrhosis-synthetic-data}, including the generative models, the IQR and consensus filters, the evaluation pipeline, and the scripts that produce each supplementary table.
+
+% ===============================================================
 \section{Additional Supporting Figures}
 
 The four figures below are referenced from earlier sections of this document (Extended Methodology and Extended Privacy Analyses) and are placed together here to keep this document's figure numbering stable as material is added.
@@ -516,9 +521,18 @@ The four figures below are referenced from earlier sections of this document (Ex
   \label{figS:pipeline}
 \end{figure}
 
+\FloatBarrier
 % ===============================================================
-\section{Data and Code Availability}
+% References
+% ===============================================================
+\begin{thebibliography}{9}
 
-The Mayo Clinic PBC dataset is publicly available from the UCI Machine Learning Repository as ``Cirrhosis Patient Survival Prediction'' (doi:~10.24432/C5R02G), \url{https://archive.ics.uci.edu/dataset/878/cirrhosis+patient+survival+prediction}. All code required to reproduce every number and figure in the main paper and in this document is available at \url{https://github.com/Michaeludousoro/liver-cirrhosis-synthetic-data}, including the generative models, the IQR and consensus filters, the evaluation pipeline, and the scripts that produce each supplementary table.
+\bibitem{mirza2014}
+M. Mirza and S. Osindero, ``Conditional generative adversarial nets,'' \textit{arXiv}, Nov.~2014, doi:~10.48550/arxiv.1411.1784.
+
+\bibitem{xu2019}
+L. Xu, M. Skoularidou, A. Cuesta-Infante, and K. Veeramachaneni, ``Modeling tabular data using conditional GAN,'' in \textit{Proc. Adv. Neural Inf. Process. Syst. (NeurIPS)}, 2019, pp.~7335--7345.
+
+\end{thebibliography}
 
 \end{document}
